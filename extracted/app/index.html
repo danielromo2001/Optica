@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpticaApp</title>
+    <link rel="stylesheet" href="../app/styles.css">
+</head>
+<body>
+    <header>
+        <img src="../images/logo.png" alt="Logo de la Óptica" class="logo">
+        <h1>FASHION VISION <br> E Y C ÓPTICA, C.A.</h1>
+    </header>
+    <main>
+        <form id="formulario" style="max-width: 800px;">
+            <div class="row">
+                <div class="form-section">
+                    <label for="fecha">Fecha:</label>
+                    <input type="date" id="fecha" required>
+                </div>
+                <div class="form-section">
+                    <label for="entidad">Entidad:</label>
+                    <select id="entidad">
+                        <option value="Particular">Particular</option>
+                        <option value="Empresa">Empresa</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-section">
+                    <label for="nombre">Nombre:</label>
+                    <input type="text" id="nombre" name="nombre" required>
+                </div>
+                <div class="form-section" style="flex: 1; margin-left: 15px;">
+                    <label for="documento">Documento:</label>
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <input type="text" id="documento" name="documento" required style="flex: 1;">
+                        <button type="button" id="btnBuscar">🔍</button>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-section">
+                    <label for="edad">Edad:</label>
+                    <input type="number" id="edad" required>
+                </div>
+                <div class="form-section">
+                    <label for="telefono">Teléfono:</label>
+                    <input type="tel" id="telefono" required>
+                </div>
+            </div>
+
+            <h2>RX Definitiva</h2>
+            <div class="row">
+                <div class="form-section">
+                    <label for="od">OD:</label>
+                    <input type="text" id="od" required>
+                </div>
+                <div class="form-section">
+                    <label for="oi">OI:</label>
+                    <input type="text" id="oi" required>
+                </div>
+                <div class="form-section">
+                    <label for="adicion">ADD:</label>
+                    <input type="text" id="adicion" required>
+                </div>
+            </div>
+            
+            <h2>AVCC</h2>
+            <div class="row">
+                <div class="form-section">
+                    <label for="avcc-od">OD:</label>
+                    <input type="text" id="avcc-od" required>
+                </div>
+                <div class="form-section">
+                    <label for="avcc-oi">OI:</label>
+                    <input type="text" id="avcc-oi" required>
+                </div>
+            </div>
+            
+            <h2>Otros Datos</h2>
+            <div class="row">
+                <div class="form-section">
+                    <label for="dp">D. Pupilar:</label>
+                    <input type="text" id="dp" required>
+                </div>
+                <div class="form-section">
+                    <label for="color">Color:</label>
+                    <input type="text" id="color" required>
+                </div>
+                <div class="form-section">
+                    <label for="tipo">Tipo:</label>
+                    <input type="text" id="tipo" required>
+                </div>
+                <div class="form-section">
+                    <label for="filtro">Filtro:</label>
+                    <input type="text" id="filtro" required>
+                </div>
+                <div class="form-section">
+                    <label for="uso">Uso:</label>
+                    <input type="text" id="uso" required>
+                </div>
+                <div class="form-section">
+                    <label for="control">Control:</label>
+                    <input type="text" id="control" required>
+                </div>
+                <div class="form-section">
+                    <label for="distancia-nasopupilar-od">Distancia Nasopupilar OD:</label>
+                    <input type="text" id="distancia-nasopupilar-od" required>
+                </div>
+                <div class="form-section">
+                    <label for="distancia-nasopupilar-oi">Distancia Nasopupilar OI:</label>
+                    <input type="text" id="distancia-nasopupilar-oi" required>
+                </div>
+            </div>
+            
+            <h2>Observaciones</h2>
+            <textarea id="observaciones" rows="4" required></textarea>
+            
+            <button id="btnGuardar">Guardar</button>
+            <div class="row">
+                <button type="button" id="btnLimpiar" style="background-color: #ffc107; color: #333;">Limpiar Datos</button>
+                <button type="button" id="btnEliminar" style="background-color: #dc3545; color: white;">Eliminar Paciente</button>
+            </div>
+        </form>
+    </main>
+    <script src="../js/renderer.js"></script>
+</body>
+</html>
