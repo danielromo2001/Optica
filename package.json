@@ -1,0 +1,51 @@
+{
+  "name": "optica_app",
+  "version": "1.0.1",
+  "description": "App para la gestión de fórmulas ópticas",
+  "main": "js/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "keywords": [],
+  "author": "Daniel RoMo DEV",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "electron": "^35.0.3",
+    "electron-builder": "^25.1.8"
+  },
+  "dependencies": {
+    "call-bind-apply-helpers": "^1.0.2",
+    "pdfkit": "^0.13.0",
+    "sqlite3": "^5.1.7"
+  },
+  "build": {
+    "appId": "com.optica.app",
+    "productName": "OpticaApp",
+    "asar": true,
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "app/**/*",
+      "js/**/*",
+      "images/**/*",
+      "db/**/*",
+      "!node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "node_modules/call-bind-apply-helpers/**/*",
+      "!**/node_modules/.bin",
+      "!**/*.map"
+    ],
+    "extraResources": [
+      {
+        "from": "node_modules/sqlite3",
+        "to": "app/node_modules/sqlite3"
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "../images/icon.ico"
+    }
+  }
+}
