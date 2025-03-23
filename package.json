@@ -13,11 +13,11 @@
   "type": "commonjs",
   "devDependencies": {
     "electron": "^35.0.3",
-    "electron-builder": "^25.1.8"
+    "electron-packager": "^17.1.2"
   },
   "dependencies": {
     "call-bind-apply-helpers": "^1.0.2",
-    "pdfkit": "^0.13.0",
+    "pdfkit": "^0.16.0",
     "sqlite3": "^5.1.7"
   },
   "build": {
@@ -35,7 +35,8 @@
       "!node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
       "node_modules/call-bind-apply-helpers/**/*",
       "!**/node_modules/.bin",
-      "!**/*.map"
+      "!**/*.map",
+      "!dist/**/*"
     ],
     "extraResources": [
       {
