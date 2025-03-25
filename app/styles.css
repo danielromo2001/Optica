@@ -55,16 +55,16 @@ h2{
 }
 
 /* Estilo del encabezado */
-.header {  /*POR HACER*/
+.header {
     display: flex;
     align-items: center;
     justify-content: center;
     background-color: var(--azulOscuro);
     color: var(--blanco);
-    width: 100vw; /* Ancho total de la pantalla */
-    height: auto; /* Ajustar la altura según contenido */
-    padding: 1rem; /* Eliminar relleno interno si hay */
-    margin: 0; /* Evitar separación con otros elementos */
+    width: 100vw; 
+    height: auto;
+    padding: 1rem;
+    margin: 0;
 }
 
 header .logo {
@@ -104,7 +104,7 @@ header h1 {
 }
 
 input, select, textarea {
-    padding: 10px;
+    padding: 1rem;
     border: 2px solid #9C9494;
     border-radius: 1rem;
     width: 100%; /* Asegurar que el campo ocupe todo el ancho disponible */
@@ -115,7 +115,7 @@ input, select, textarea {
 }
 
 input:focus, select:focus, textarea:focus {
-    border-color: #1770D5;
+    border-color: var(--azulClaro);
     outline: none;
     background-color: #FFFFFF;
 }
@@ -126,62 +126,62 @@ textarea {
 
 /* Estilo de botones */
 button {
-    padding: 10px;
-    background-color: var(--azulClaro); /* Color principal de la paleta */
+    padding: 1rem;
+    background-color: var(--azulClaro);
     color: var(--blanco);
     border: none;
-    border-radius: .5rem;
+    border-radius: 1rem;
     cursor: pointer;
     font-size: 1.6rem;
     transition: background-color 0.3s ease;
 }
 label{
-    color: var(--gris);
+    color: var(--oscuro);
     font-size: 1.5rem;
     font-weight: 700;
 }
 
 button:hover {
-    background-color: var(--azulOscuro); /* Color más oscuro para hover */
+    background-color: var(--azulOscuro);
 }
 
 button#btnBuscar {
-    padding: 5px 10px;
-    font-size: 14px;
+    padding: 1rem;
+    font-size: 1.4rem;
     width: auto;
-    background-color: var(--verde); /* Verde de la paleta */
+    background-color: var(--verde);
     color: white;
     border-radius: 5px;
 }
 
 button#btnBuscar:hover {
-    background-color: #1770D5; /* Azul para hover */
+    background-color: #1770D5;
 }
 
 button#btnLimpiar {
-    background-color: #FFC107; /* Amarillo */
-    color: #171919;
-    border-radius: 5px;
-    padding: 10px;
-    font-size: 16px;
+    background-color: #FFC107;
+    color: var(--blanco);
+    border-radius: 1rem;
+    padding: 1rem;
+    font-size: 1.6rem;
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
 
 button#btnLimpiar:hover {
-    background-color: #E0CA00; /* Amarillo más oscuro */
+    background-color: #E0CA00;
 }
 
 button#btnEliminar {
-    background-color: #DC3545; /* Rojo */
+    background-color: #DC3545;
     color: white;
-    border-radius: 5px;
-    padding: 10px;
-    font-size: 16px;
+    border-radius: 1rem;
+    padding: 1rem;
+    font-size: 1.6rem;
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
 
 button#btnEliminar:hover {
-    background-color: #A71D2A; /* Rojo más oscuro */
+    background-color: #A71D2A;
 }
