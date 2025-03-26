@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const avcc_od = document.getElementById("avcc-od").value; 
         const avcc_oi = document.getElementById("avcc-oi").value; 
         const dp = document.getElementById("dp").value;
-        const color = document.getElementById("color").value;
+        const altura = document.getElementById("altura").value;
         const tipo = document.getElementById("tipo").value;
         const filtro = document.getElementById("filtro").value;
         const uso = document.getElementById("uso").value;
@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        const data = { fecha, entidad, nombre, documento, edad, telefono, od, oi, adicion, avcc_od, avcc_oi, dp, color, tipo, filtro, uso, control, observaciones, distanciaNasopupilarOD, distanciaNasopupilarOI };
+        const data = { fecha, entidad, nombre, documento, edad, telefono, od, oi, adicion, avcc_od, avcc_oi, dp, altura, tipo, filtro, uso, control, observaciones, distanciaNasopupilarOD, distanciaNasopupilarOI };
 
         window.api.validarDocumento(documento, (existe) => {
             if (existe) {
@@ -130,7 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("avcc-od").value = data.avcc_od || "";
             document.getElementById("avcc-oi").value = data.avcc_oi || "";
             document.getElementById("dp").value = data.dp || "";
-            document.getElementById("color").value = data.color || "";
+            document.getElementById("altura").value = data.altura || "";
             document.getElementById("tipo").value = data.tipo || "";
             document.getElementById("filtro").value = data.filtro || "";
             document.getElementById("uso").value = data.uso || "";
