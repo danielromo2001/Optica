@@ -28,7 +28,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
             avcc_od TEXT,
             avcc_oi TEXT,
             dp TEXT,
-            color TEXT,
+            altura TEXT,
             tipo TEXT,
             filtro TEXT,
             uso TEXT,
@@ -63,10 +63,10 @@ ipcMain.on('guardar-consulta', (event, data) => {
     // Verificar que todos los campos tengan valores
     console.log("Campos recibidos:", JSON.stringify(data, null, 2));
 
-    const sql = `INSERT INTO pacientes (fecha, entidad, nombre, documento, edad, telefono, od, oi, adicion, avcc_od, avcc_oi, dp, color, tipo, filtro, uso, control, observaciones, distanciaNasopupilarOD, distanciaNasopupilarOI)
+    const sql = `INSERT INTO pacientes (fecha, entidad, nombre, documento, edad, telefono, od, oi, adicion, avcc_od, avcc_oi, dp, altura, tipo, filtro, uso, control, observaciones, distanciaNasopupilarOD, distanciaNasopupilarOI)
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-    const params = [data.fecha, data.entidad, data.nombre, data.documento, data.edad, data.telefono, data.od, data.oi, data.adicion, data.avcc_od, data.avcc_oi, data.dp, data.color, data.tipo, data.filtro, data.uso, data.control, data.observaciones, data.distanciaNasopupilarOD, data.distanciaNasopupilarOI];
+    const params = [data.fecha, data.entidad, data.nombre, data.documento, data.edad, data.telefono, data.od, data.oi, data.adicion, data.avcc_od, data.avcc_oi, data.dp, data.color, data.tipo, data.filtro, data.uso, data.control, data.observaciones, data.distanciaNasopupilarOD, data.distanciaNasopupilarOI];;
 
     console.log("Ejecutando consulta SQL:", sql);
     console.log("Parámetros:", params);
@@ -84,8 +84,8 @@ ipcMain.on('guardar-consulta', (event, data) => {
 
 ipcMain.handle('actualizar-consulta', async (event, data) => {
     return new Promise((resolve) => {
-        const sql = `UPDATE pacientes SET fecha = ?, entidad = ?, nombre = ?, edad = ?, telefono = ?, od = ?, oi = ?, adicion = ?, avcc_od = ?, avcc_oi = ?, dp = ?, color = ?, tipo = ?, filtro = ?, uso = ?, control = ?, observaciones = ?, distanciaNasopupilarOD = ?, distanciaNasopupilarOI = ? WHERE documento = ?`;
-        const params = [data.fecha, data.entidad, data.nombre, data.edad, data.telefono, data.od, data.oi, data.adicion, data.avcc_od, data.avcc_oi, data.dp, data.color, data.tipo, data.filtro, data.uso, data.control, data.observaciones, data.distanciaNasopupilarOD, data.distanciaNasopupilarOI, data.documento];
+        const sql = `UPDATE pacientes SET fecha = ?, entidad = ?, nombre = ?, edad = ?, telefono = ?, od = ?, oi = ?, adicion = ?, avcc_od = ?, avcc_oi = ?, dp = ?, altura = ?, tipo = ?, filtro = ?, uso = ?, control = ?, observaciones = ?, distanciaNasopupilarOD = ?, distanciaNasopupilarOI = ? WHERE documento = ?`;
+        const params = [data.fecha, data.entidad, data.nombre, data.edad, data.telefono, data.od, data.oi, data.adicion, data.avcc_od, data.avcc_oi, data.dp, data.altura, data.tipo, data.filtro, data.uso, data.control, data.observaciones, data.distanciaNasopupilarOD, data.distanciaNasopupilarOI, data.documento];
 
         db.run(sql, params, function (err) {
             if (err) {
@@ -227,8 +227,8 @@ ipcMain.handle('generar-pdf', async (event, data) => {
         doc.font('Helvetica').text(data.dp || "", columnCenter, tableTop + 100);
         doc.text("-", columnRight, tableTop + 100);
 
-        doc.font('Helvetica-Bold').text("Color", columnLeft, tableTop + 120); // Campo en negrita
-        doc.font('Helvetica').text(data.color || "", columnCenter, tableTop + 120);
+        doc.font('Helvetica-Bold').text("Altura", columnLeft, tableTop + 120); // Campo en negrita
+        doc.font('Helvetica').text(data.altura || "", columnCenter, tableTop + 120);
         doc.text("-", columnRight, tableTop + 120);
 
         doc.font('Helvetica-Bold').text("Tipo", columnLeft, tableTop + 140); // Campo en negrita
