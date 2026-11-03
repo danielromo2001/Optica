@@ -21,6 +21,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const listaResumen = $("lista-resumen");
     const tablaCuerpo = $("tabla-cuerpo");
     const listaVacio = $("lista-vacio");
+    const btnRespaldo = $("btnRespaldo");
+    const listaMensaje = $("lista-mensaje");
 
     let documentoEnEdicion = null;
     let temporizadorBusqueda = null;
@@ -38,6 +40,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const ocultarMensaje = () => {
         mensaje.hidden = true;
         mensaje.textContent = "";
+    };
+
+    const mostrarMensajeLista = (texto, tipo = "info") => {
+        listaMensaje.textContent = texto;
+        listaMensaje.className = `mensaje ${tipo}`;
+        listaMensaje.hidden = false;
+    };
+
+    const ocultarMensajeLista = () => {
+        listaMensaje.hidden = true;
+        listaMensaje.textContent = "";
     };
 
     // ------------------------------------------------------------------
@@ -380,8 +393,35 @@ document.addEventListener("DOMContentLoaded", () => {
         filtroTexto.value = "";
         filtroDesde.value = "";
         filtroHasta.value = "";
+        ocultarMensajeLista();
         cargarLista();
         filtroTexto.focus();
+    });
+
+    // ------------------------------------------------------------------
+    // Respaldo de la base de datos
+    // ------------------------------------------------------------------
+
+    btnRespaldo.addEventListener("click", async () => {
+        btnRespaldo.disabled = true;
+        ocultarMensajeLista();
+
+        try {
+            const resultado = await window.api.respaldarDatos();
+
+            if (!resultado || !resultado.success) {
+                mostrarMensajeLista(resultado?.error || "No se pudo crear el respaldo.", "error");
+                return;
+            }
+            if (resultado.cancelado) return;
+
+            mostrarMensajeLista(`Respaldo guardado en ${resultado.path}`, "exito");
+        } catch (error) {
+            console.error("Error al respaldar:", error);
+            mostrarMensajeLista("Ocurrió un error inesperado al crear el respaldo.", "error");
+        } finally {
+            btnRespaldo.disabled = false;
+        }
     });
 
     // ------------------------------------------------------------------

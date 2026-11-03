@@ -5,14 +5,18 @@ const { app } = require('electron');
 const { migrar } = require('./migraciones');
 
 let db = null;
+let rutaActual = null;
 
 // La BD debe vivir en el directorio de datos del usuario: el directorio de la
 // aplicación es de solo lectura cuando está empaquetada (asar).
-function getUserDbPath() {
+function getDefaultDbPath() {
     const userDataDir = app.getPath('userData');
     fs.mkdirSync(userDataDir, { recursive: true });
     return path.join(userDataDir, 'optica.db');
 }
+
+// Se mantiene el nombre histórico para no romper a quien lo importe.
+const getUserDbPath = getDefaultDbPath;
 
 function getLegacyDbPath() {
     return path.join(__dirname, '../db/optica.db');
@@ -27,13 +31,18 @@ function copyLegacyDatabaseIfNeeded(targetPath) {
     }
 }
 
-function open() {
+function open(ruta = getDefaultDbPath()) {
     if (db) return Promise.resolve(db);
 
     return new Promise((resolve, reject) => {
-        db = new sqlite3.Database(getUserDbPath(), (err) => {
-            if (err) reject(err);
-            else resolve(db);
+        db = new sqlite3.Database(ruta, (err) => {
+            if (err) {
+                db = null;
+                reject(err);
+            } else {
+                rutaActual = ruta;
+                resolve(db);
+            }
         });
     });
 }
@@ -65,17 +74,46 @@ function all(sql, params = []) {
     });
 }
 
+// Copia consistente de la base de datos aunque esté abierta. Se usa
+// `VACUUM INTO` en lugar de la API db.backup() de sqlite3: esa API devuelve el
+// callback antes de volcar el archivo y deja la copia a 0 bytes en Windows.
+function backup(destino) {
+    if (!db) return Promise.reject(new Error('La base de datos no está abierta.'));
+    if (fs.existsSync(destino)) {
+        return Promise.reject(new Error('Ya existe un archivo en la ruta de destino.'));
+    }
+    return run('VACUUM INTO ?', [destino]).then(() => destino);
+}
+
 function close() {
     if (!db) return Promise.resolve();
     const connection = db;
     db = null;
+    rutaActual = null;
     return new Promise((resolve) => connection.close(() => resolve()));
 }
 
-async function init() {
-    copyLegacyDatabaseIfNeeded(getUserDbPath());
-    await open();
+// `ruta` permite abrir una base concreta (pruebas); en la app se usa la ruta de
+// datos del usuario y, si existe, se migra la BD de instalaciones antiguas.
+async function init({ ruta } = {}) {
+    const destino = ruta || getDefaultDbPath();
+    if (!ruta) copyLegacyDatabaseIfNeeded(destino);
+    await open(destino);
     await migrar({ run, get, all });
+    return destino;
 }
 
-module.exports = { init, run, get, all, close, getUserDbPath };
+module.exports = {
+    init,
+    open,
+    run,
+    get,
+    all,
+    backup,
+    close,
+    getUserDbPath,
+    getDefaultDbPath,
+    get rutaActual() {
+        return rutaActual;
+    }
+};

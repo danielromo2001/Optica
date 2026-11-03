@@ -4,16 +4,24 @@
   "description": "App para la gestión de fórmulas ópticas",
   "main": "js/main.js",
   "scripts": {
-    "start": "nodemon --watch . --exec electron .",
-    "build": "electron-builder"
+    "start": "electron .",
+    "dev": "nodemon --watch . --exec electron .",
+    "test": "node --test",
+    "postinstall": "node scripts/verificar-electron.js",
+    "reparar-electron": "node scripts/verificar-electron.js",
+    "build": "electron-builder --win",
+    "build:dir": "electron-builder --dir"
   },
   "keywords": [],
   "author": "Daniel RoMo DEV",
   "license": "ISC",
   "type": "commonjs",
+  "engines": {
+    "node": ">=20"
+  },
   "devDependencies": {
     "electron": "^35.0.3",
-    "electron-packager": "^17.1.2",
+    "electron-builder": "^26.18.0",
     "nodemon": "^3.1.9"
   },
   "dependencies": {
@@ -25,6 +33,9 @@
     "appId": "com.optica.app",
     "productName": "OpticaApp",
     "asar": true,
+    "asarUnpack": [
+      "**/*.node"
+    ],
     "directories": {
       "output": "dist"
     },
@@ -32,21 +43,22 @@
       "app/**/*",
       "js/**/*",
       "images/**/*",
-      "!node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
-      "node_modules/call-bind-apply-helpers/**/*",
-      "!**/node_modules/.bin",
+      "package.json",
       "!**/*.map",
-      "!dist/**/*"
-    ],
-    "extraResources": [
-      {
-        "from": "node_modules/sqlite3",
-        "to": "app/node_modules/sqlite3"
-      }
+      "!**/{CHANGELOG.md,README.md,README,readme.md,readme,LICENSE,license}",
+      "!dist/**/*",
+      "!db/**/*",
+      "!test/**/*",
+      "!scripts/**/*"
     ],
     "win": {
       "target": "nsis",
-      "icon": "../images/icon.ico"
+      "icon": "images/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
     }
   }
 }

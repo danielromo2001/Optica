@@ -9,5 +9,6 @@ contextBridge.exposeInMainWorld("api", {
     buscarConsulta: (documento) => ipcRenderer.invoke("buscar-consulta", documento),
     listarPacientes: (filtros) => ipcRenderer.invoke("listar-pacientes", filtros),
     eliminarConsulta: (documento) => ipcRenderer.invoke("eliminar-consulta", documento),
-    generarPDF: (data) => ipcRenderer.invoke("generar-pdf", data)
+    generarPDF: (data) => ipcRenderer.invoke("generar-pdf", data),
+    respaldarDatos: () => ipcRenderer.invoke("respaldar-datos")
 });
