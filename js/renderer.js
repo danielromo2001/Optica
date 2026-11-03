@@ -1,66 +1,169 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const formulario = document.getElementById("formulario");
-    const btnGuardar = document.getElementById("btnGuardar");
-    const btnBuscar = document.getElementById("btnBuscar");
-    const btnLimpiar = document.getElementById("btnLimpiar");
-    const btnEliminar = document.getElementById("btnEliminar");
+    const $ = (id) => document.getElementById(id);
 
-    if (!formulario || !btnGuardar || !btnBuscar || !btnLimpiar || !btnEliminar) {
-        console.error("Error: No se encontraron los elementos necesarios");
-        return;
-    }
+    const formulario = $("formulario");
+    const mensaje = $("mensaje");
+    const modoEdicion = $("modo-edicion");
+    const btnGuardar = $("btnGuardar");
+    const btnBuscar = $("btnBuscar");
+    const btnLimpiar = $("btnLimpiar");
+    const btnEliminar = $("btnEliminar");
 
-    // Lee todos los campos del formulario y los devuelve como un objeto.
+    const tabs = document.querySelectorAll(".tab");
+    const vistaFormulario = $("vista-formulario");
+    const vistaLista = $("vista-lista");
+
+    const filtroTexto = $("filtro-texto");
+    const filtroDesde = $("filtro-desde");
+    const filtroHasta = $("filtro-hasta");
+    const btnFiltrar = $("btnFiltrar");
+    const btnLimpiarFiltros = $("btnLimpiarFiltros");
+    const listaResumen = $("lista-resumen");
+    const tablaCuerpo = $("tabla-cuerpo");
+    const listaVacio = $("lista-vacio");
+
+    let documentoEnEdicion = null;
+    let temporizadorBusqueda = null;
+
+    // ------------------------------------------------------------------
+    // Mensajes
+    // ------------------------------------------------------------------
+
+    const mostrarMensaje = (texto, tipo = "info") => {
+        mensaje.textContent = texto;
+        mensaje.className = `mensaje ${tipo}`;
+        mensaje.hidden = false;
+    };
+
+    const ocultarMensaje = () => {
+        mensaje.hidden = true;
+        mensaje.textContent = "";
+    };
+
+    // ------------------------------------------------------------------
+    // Formulario
+    // ------------------------------------------------------------------
+
     const leerFormulario = () => ({
-        fecha: document.getElementById("fecha").value,
-        entidad: document.getElementById("entidad").value,
-        nombre: document.getElementById("nombre").value,
-        documento: document.getElementById("documento").value,
-        edad: document.getElementById("edad").value,
-        telefono: document.getElementById("telefono").value,
-        od: document.getElementById("od").value,
-        oi: document.getElementById("oi").value,
-        adicion: document.getElementById("adicion").value,
-        avcc_od: document.getElementById("avcc-od").value,
-        avcc_oi: document.getElementById("avcc-oi").value,
-        dp: document.getElementById("dp").value,
-        altura: document.getElementById("altura").value,
-        tipo: document.getElementById("tipo").value,
-        filtro: document.getElementById("filtro").value,
-        uso: document.getElementById("uso").value,
-        control: document.getElementById("control").value,
-        observaciones: document.getElementById("observaciones").value,
-        distanciaNasopupilarOD: document.getElementById("distancia-nasopupilar-od").value,
-        distanciaNasopupilarOI: document.getElementById("distancia-nasopupilar-oi").value
+        fecha: $("fecha").value,
+        entidad: $("entidad").value,
+        nombre: $("nombre").value,
+        documento: $("documento").value,
+        edad: $("edad").value,
+        telefono: $("telefono").value,
+        od: $("od").value,
+        oi: $("oi").value,
+        adicion: $("adicion").value,
+        avcc_od: $("avcc-od").value,
+        avcc_oi: $("avcc-oi").value,
+        dp: $("dp").value,
+        altura: $("altura").value,
+        tipo: $("tipo").value,
+        filtro: $("filtro").value,
+        uso: $("uso").value,
+        control: $("control").value,
+        observaciones: $("observaciones").value,
+        distanciaNasopupilarOD: $("distancia-nasopupilar-od").value,
+        distanciaNasopupilarOI: $("distancia-nasopupilar-oi").value
     });
 
-    // form.reset() vuelve a los valores por defecto del HTML (incluido el select).
-    const limpiarCampos = () => formulario.reset();
+    const rellenarFormulario = (data) => {
+        $("fecha").value = data.fecha || "";
+        $("entidad").value = data.entidad || "Particular";
+        $("nombre").value = data.nombre || "";
+        $("documento").value = data.documento || "";
+        $("edad").value = data.edad ?? "";
+        $("telefono").value = data.telefono || "";
+        $("od").value = data.od || "";
+        $("oi").value = data.oi || "";
+        $("adicion").value = data.adicion || "";
+        $("avcc-od").value = data.avcc_od || "";
+        $("avcc-oi").value = data.avcc_oi || "";
+        $("dp").value = data.dp || "";
+        $("altura").value = data.altura || "";
+        $("tipo").value = data.tipo || "";
+        $("filtro").value = data.filtro || "";
+        $("uso").value = data.uso || "";
+        $("control").value = data.control || "";
+        $("observaciones").value = data.observaciones || "";
+        $("distancia-nasopupilar-od").value = data.distanciaNasopupilarOD || "";
+        $("distancia-nasopupilar-oi").value = data.distanciaNasopupilarOI || "";
+    };
+
+    const limpiarFormulario = () => {
+        formulario.reset();
+        documentoEnEdicion = null;
+        modoEdicion.hidden = true;
+        ocultarMensaje();
+    };
+
+    const marcarEnEdicion = (data) => {
+        documentoEnEdicion = data.documento;
+        modoEdicion.textContent = `Editando a ${data.nombre} (${data.documento}).`;
+        modoEdicion.hidden = false;
+    };
 
     const bloquearBoton = (bloqueado) => {
         btnGuardar.disabled = bloqueado;
         btnGuardar.textContent = bloqueado ? "Guardando..." : "Guardar";
     };
 
-    // Guarda el paciente y, solo si el guardado fue correcto, genera el PDF.
+    // ------------------------------------------------------------------
+    // Vistas (pestañas)
+    // ------------------------------------------------------------------
+
+    const mostrarVista = (nombre) => {
+        const esFormulario = nombre === "formulario";
+
+        vistaFormulario.hidden = !esFormulario;
+        vistaLista.hidden = esFormulario;
+
+        tabs.forEach((tab) => {
+            const activo = tab.dataset.vista === nombre;
+            tab.classList.toggle("activo", activo);
+            tab.setAttribute("aria-selected", String(activo));
+        });
+
+        if (esFormulario) {
+            $("documento").focus();
+        } else {
+            cargarLista();
+            filtroTexto.focus();
+        }
+    };
+
+    tabs.forEach((tab) => {
+        tab.addEventListener("click", () => mostrarVista(tab.dataset.vista));
+    });
+
+    // ------------------------------------------------------------------
+    // Guardar
+    // ------------------------------------------------------------------
+
     const guardarPaciente = async () => {
         const data = leerFormulario();
 
         if (!data.fecha || !data.nombre || !data.documento) {
-            alert("Por favor, completa fecha, nombre y documento.");
+            mostrarMensaje("Completa fecha, nombre y documento.", "error");
             return;
         }
 
         bloquearBoton(true);
+        ocultarMensaje();
+
         try {
             const validacion = await window.api.validarDocumento(data.documento);
             if (!validacion || !validacion.success) {
-                alert(`No se pudo comprobar el documento.\n${validacion?.error || "Error desconocido"}`);
+                mostrarMensaje(validacion?.error || "No se pudo comprobar el documento.", "error");
                 return;
             }
 
             const existe = validacion.existe;
-            if (existe && !confirm("El documento ya existe. ¿Deseas actualizar los datos?")) {
+            const esElMismoPaciente = documentoEnEdicion !== null
+                && documentoEnEdicion === data.documento;
+
+            if (existe && !esElMismoPaciente
+                && !confirm("El documento ya existe. ¿Deseas actualizar los datos?")) {
                 return;
             }
 
@@ -69,104 +172,235 @@ document.addEventListener("DOMContentLoaded", () => {
                 : await window.api.guardarConsulta(data);
 
             if (!resultado || !resultado.success) {
-                alert(`No se pudieron guardar los datos.\n${resultado?.error || "Error desconocido"}`);
+                mostrarMensaje(resultado?.error || "No se pudieron guardar los datos.", "error");
                 return;
             }
 
             const pdf = await window.api.generarPDF(data);
+            limpiarFormulario();
+
             if (pdf && pdf.success) {
-                alert(`Datos guardados y PDF generado en:\n${pdf.path}`);
-                limpiarCampos();
+                mostrarMensaje(`Paciente guardado. PDF: ${pdf.path}`, "exito");
             } else {
-                // Los datos sí se guardaron: no se limpian para poder reintentar el PDF.
-                alert(`Datos guardados, pero no se pudo generar el PDF.\n${pdf?.error || ""}`);
+                mostrarMensaje(`Paciente guardado, pero el PDF falló: ${pdf?.error || "error desconocido"}`, "error");
             }
         } catch (error) {
-            console.error("Error inesperado al guardar:", error);
-            alert("Ocurrió un error inesperado al guardar los datos.");
+            console.error("Error al guardar:", error);
+            mostrarMensaje("Ocurrió un error inesperado al guardar.", "error");
         } finally {
             bloquearBoton(false);
         }
     };
 
-    // preventDefault en submit evita que pulsar Enter recargue la aplicación.
     formulario.addEventListener("submit", (event) => {
         event.preventDefault();
         guardarPaciente();
     });
 
+    // ------------------------------------------------------------------
+    // Buscar por documento y eliminar desde el formulario
+    // ------------------------------------------------------------------
+
     btnBuscar.addEventListener("click", async () => {
-        const documento = document.getElementById("documento").value;
+        const documento = $("documento").value.trim();
 
         if (!documento) {
-            alert("Por favor, ingresa un documento para buscar.");
+            mostrarMensaje("Ingresa un documento para buscar.", "error");
             return;
         }
 
         try {
             const resultado = await window.api.buscarConsulta(documento);
             if (!resultado || !resultado.success) {
-                alert(`No se pudo buscar el paciente.\n${resultado?.error || "Error desconocido"}`);
+                mostrarMensaje(resultado?.error || "No se pudo buscar el paciente.", "error");
+                return;
+            }
+            if (!resultado.paciente) {
+                mostrarMensaje("No se encontró ningún paciente con ese documento.", "error");
                 return;
             }
 
-            const data = resultado.paciente;
-            if (!data) {
-                alert("No se encontraron datos para el documento ingresado.");
-                return;
-            }
-
-            document.getElementById("fecha").value = data.fecha || "";
-            document.getElementById("entidad").value = data.entidad || "Particular";
-            document.getElementById("nombre").value = data.nombre || "";
-            document.getElementById("documento").value = data.documento || "";
-            document.getElementById("edad").value = data.edad || "";
-            document.getElementById("telefono").value = data.telefono || "";
-            document.getElementById("od").value = data.od || "";
-            document.getElementById("oi").value = data.oi || "";
-            document.getElementById("adicion").value = data.adicion || "";
-            document.getElementById("avcc-od").value = data.avcc_od || "";
-            document.getElementById("avcc-oi").value = data.avcc_oi || "";
-            document.getElementById("dp").value = data.dp || "";
-            document.getElementById("altura").value = data.altura || "";
-            document.getElementById("tipo").value = data.tipo || "";
-            document.getElementById("filtro").value = data.filtro || "";
-            document.getElementById("uso").value = data.uso || "";
-            document.getElementById("control").value = data.control || "";
-            document.getElementById("observaciones").value = data.observaciones || "";
-            document.getElementById("distancia-nasopupilar-od").value = data.distanciaNasopupilarOD || "";
-            document.getElementById("distancia-nasopupilar-oi").value = data.distanciaNasopupilarOI || "";
+            rellenarFormulario(resultado.paciente);
+            marcarEnEdicion(resultado.paciente);
+            mostrarMensaje("Paciente cargado. Puedes editarlo y guardar los cambios.", "info");
         } catch (error) {
             console.error("Error al buscar:", error);
-            alert("Ocurrió un error inesperado al buscar el paciente.");
+            mostrarMensaje("Ocurrió un error inesperado al buscar.", "error");
         }
     });
 
-    btnLimpiar.addEventListener("click", limpiarCampos);
+    btnLimpiar.addEventListener("click", limpiarFormulario);
 
-    btnEliminar.addEventListener("click", async () => {
-        const documento = document.getElementById("documento").value;
-
+    const eliminarPaciente = async (documento) => {
         if (!documento) {
-            alert("Por favor, ingresa un documento para eliminar.");
+            mostrarMensaje("No hay un paciente seleccionado para eliminar.", "error");
             return;
         }
 
-        if (!confirm("¿Estás seguro de que deseas eliminar este paciente?")) {
+        if (!confirm(`¿Eliminar el paciente con documento ${documento}?`)) {
             return;
         }
 
         try {
             const resultado = await window.api.eliminarConsulta(documento);
             if (resultado && resultado.success) {
-                alert("Paciente eliminado exitosamente.");
-                limpiarCampos();
+                limpiarFormulario();
+                mostrarMensaje("Paciente eliminado.", "exito");
+                if (!vistaLista.hidden) cargarLista();
             } else {
-                alert(`No se pudo eliminar el paciente.\n${resultado?.error || "Error desconocido"}`);
+                mostrarMensaje(resultado?.error || "No se pudo eliminar el paciente.", "error");
             }
         } catch (error) {
             console.error("Error al eliminar:", error);
-            alert("Ocurrió un error inesperado al eliminar el paciente.");
+            mostrarMensaje("Ocurrió un error inesperado al eliminar.", "error");
+        }
+    };
+
+    btnEliminar.addEventListener("click", () => eliminarPaciente($("documento").value.trim()));
+
+    // ------------------------------------------------------------------
+    // Listado de pacientes
+    // ------------------------------------------------------------------
+
+    const formatearFecha = (fecha) => {
+        if (!fecha || !/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return fecha || "";
+        const [anio, mes, dia] = fecha.split("-");
+        return `${dia}/${mes}/${anio}`;
+    };
+
+    const crearCelda = (texto) => {
+        const celda = document.createElement("td");
+        celda.textContent = texto;
+        return celda;
+    };
+
+    const abrirPaciente = async (documento) => {
+        try {
+            const resultado = await window.api.buscarConsulta(documento);
+            if (!resultado || !resultado.success || !resultado.paciente) {
+                mostrarMensaje("No se pudo cargar el paciente.", "error");
+                return;
+            }
+
+            rellenarFormulario(resultado.paciente);
+            marcarEnEdicion(resultado.paciente);
+            mostrarVista("formulario");
+            mostrarMensaje("Paciente cargado. Puedes editarlo y guardar los cambios.", "info");
+        } catch (error) {
+            console.error("Error al abrir paciente:", error);
+            mostrarMensaje("Ocurrió un error inesperado al abrir el paciente.", "error");
+        }
+    };
+
+    const pintarFilas = (pacientes) => {
+        tablaCuerpo.textContent = "";
+
+        pacientes.forEach((paciente) => {
+            const fila = document.createElement("tr");
+            fila.dataset.documento = paciente.documento;
+
+            fila.appendChild(crearCelda(paciente.documento));
+            fila.appendChild(crearCelda(paciente.nombre));
+            fila.appendChild(crearCelda(formatearFecha(paciente.fecha)));
+            fila.appendChild(crearCelda(paciente.telefono || "—"));
+            fila.appendChild(crearCelda(paciente.altura || "—"));
+
+            const acciones = document.createElement("td");
+            acciones.className = "acciones";
+
+            const abrir = document.createElement("button");
+            abrir.type = "button";
+            abrir.textContent = "Abrir";
+            abrir.addEventListener("click", (event) => {
+                event.stopPropagation();
+                abrirPaciente(paciente.documento);
+            });
+
+            const borrar = document.createElement("button");
+            borrar.type = "button";
+            borrar.textContent = "Eliminar";
+            borrar.className = "boton-peligro";
+            borrar.addEventListener("click", (event) => {
+                event.stopPropagation();
+                eliminarPaciente(paciente.documento);
+            });
+
+            acciones.appendChild(abrir);
+            acciones.appendChild(borrar);
+            fila.appendChild(acciones);
+
+            fila.addEventListener("click", () => abrirPaciente(paciente.documento));
+            tablaCuerpo.appendChild(fila);
+        });
+    };
+
+    async function cargarLista() {
+        const filtros = {
+            texto: filtroTexto.value.trim(),
+            desde: filtroDesde.value,
+            hasta: filtroHasta.value
+        };
+
+        listaResumen.textContent = "Cargando...";
+
+        try {
+            const resultado = await window.api.listarPacientes(filtros);
+            if (!resultado || !resultado.success) {
+                listaResumen.textContent = "";
+                mostrarMensaje(resultado?.error || "No se pudo cargar el listado.", "error");
+                return;
+            }
+
+            const pacientes = resultado.pacientes || [];
+            pintarFilas(pacientes);
+
+            listaVacio.hidden = pacientes.length > 0;
+            listaResumen.textContent = pacientes.length === 1
+                ? "1 paciente"
+                : `${pacientes.length} pacientes`;
+        } catch (error) {
+            console.error("Error al listar:", error);
+            listaResumen.textContent = "";
+            mostrarMensaje("Ocurrió un error inesperado al cargar el listado.", "error");
+        }
+    }
+
+    filtroTexto.addEventListener("input", () => {
+        clearTimeout(temporizadorBusqueda);
+        temporizadorBusqueda = setTimeout(cargarLista, 350);
+    });
+
+    filtroTexto.addEventListener("search", cargarLista);
+    filtroDesde.addEventListener("change", cargarLista);
+    filtroHasta.addEventListener("change", cargarLista);
+    btnFiltrar.addEventListener("click", cargarLista);
+
+    btnLimpiarFiltros.addEventListener("click", () => {
+        filtroTexto.value = "";
+        filtroDesde.value = "";
+        filtroHasta.value = "";
+        cargarLista();
+        filtroTexto.focus();
+    });
+
+    // ------------------------------------------------------------------
+    // Atajos de teclado
+    // ------------------------------------------------------------------
+
+    document.addEventListener("keydown", (event) => {
+        const conModificador = event.ctrlKey || event.metaKey;
+
+        if (conModificador && event.key.toLowerCase() === "s") {
+            event.preventDefault();
+            if (!vistaFormulario.hidden) guardarPaciente();
+        }
+
+        if (conModificador && event.key.toLowerCase() === "f") {
+            event.preventDefault();
+            mostrarVista("lista");
         }
     });
+
+    // Primera carga: fecha de hoy y vista de formulario.
+    $("fecha").value = new Date().toISOString().slice(0, 10);
 });

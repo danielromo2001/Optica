@@ -40,6 +40,19 @@ function registrarHandlers() {
         paciente: await pacientes.buscar(documento)
     }));
 
+    registrarCanal('listar-pacientes', async (filtros = {}) => {
+        const esFecha = (valor) => typeof valor === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(valor);
+        const texto = typeof filtros.texto === 'string' ? filtros.texto.slice(0, 80) : '';
+
+        const filas = await pacientes.listar({
+            texto,
+            desde: esFecha(filtros.desde) ? filtros.desde : '',
+            hasta: esFecha(filtros.hasta) ? filtros.hasta : ''
+        });
+
+        return { success: true, pacientes: filas, total: filas.length };
+    });
+
     registrarCanal('eliminar-consulta', async (documento) => {
         const resultado = await pacientes.eliminar(documento);
         return { success: true, ...resultado };

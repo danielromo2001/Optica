@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OpticaApp</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../app/styles.css">
@@ -20,118 +19,164 @@
             <h1>FASHION VISION <br> E Y C ÓPTICA, C.A.</h1>
         </div>
     </header>
+
+    <nav class="tabs" role="tablist" aria-label="Secciones">
+        <button type="button" class="tab activo" id="tab-formulario" role="tab" aria-selected="true" aria-controls="vista-formulario" data-vista="formulario">Paciente</button>
+        <button type="button" class="tab" id="tab-lista" role="tab" aria-selected="false" aria-controls="vista-lista" data-vista="lista">Pacientes</button>
+    </nav>
+
     <main class="contenedor">
-        <div class="contenedor_formulario">
-            <form id="formulario" class="formulario sombra" novalidate>
-                <h2>Datos Paciente</h2>
-                <div class="datos_generales">
-                    <div class="campo">
-                        <label for="fecha">Fecha:</label>
-                        <input type="date" id="fecha" required>
-                    </div>
-                    <div class="campo">
-                        <label for="entidad">Entidad:</label>
-                        <select id="entidad">
-                            <option value="Particular">Particular</option>
-                            <option value="Empresa">Empresa</option>
-                        </select>
-                    </div>
-                    <div class="campo">
-                        <label for="nombre">Nombre:</label>
-                        <input type="text" id="nombre" name="nombre" required>
-                    </div>
-                    <div class="campo">
-                        <label for="documento">Documento:</label>
-                        <div style="display: flex; align-items: center; gap: 5px;">
-                            <input type="text" id="documento" name="documento" required style="flex: 1;">
-                            <button type="button" id="btnBuscar">🔍</button>
+        <section class="vista" id="vista-formulario" role="tabpanel" aria-labelledby="tab-formulario">
+            <div class="contenedor_formulario">
+                <form id="formulario" class="formulario sombra" novalidate>
+                    <p id="mensaje" class="mensaje" role="status" aria-live="polite" hidden></p>
+                    <p id="modo-edicion" class="modo-edicion" hidden></p>
+
+                    <h2>Datos Paciente</h2>
+                    <div class="datos_generales">
+                        <div class="campo">
+                            <label for="fecha">Fecha:</label>
+                            <input type="date" id="fecha" required>
+                        </div>
+                        <div class="campo">
+                            <label for="entidad">Entidad:</label>
+                            <select id="entidad">
+                                <option value="Particular">Particular</option>
+                                <option value="Empresa">Empresa</option>
+                            </select>
+                        </div>
+                        <div class="campo">
+                            <label for="nombre">Nombre:</label>
+                            <input type="text" id="nombre" name="nombre" maxlength="80" placeholder="Nombre completo" required>
+                        </div>
+                        <div class="campo">
+                            <label for="documento">Documento:</label>
+                            <div class="campo-con-boton">
+                                <input type="text" id="documento" name="documento" maxlength="30" placeholder="Número de documento" required>
+                                <button type="button" id="btnBuscar" class="boton-secundario" title="Buscar por documento">🔍</button>
+                            </div>
+                        </div>
+                        <div class="campo">
+                            <label for="edad">Edad:</label>
+                            <input type="number" id="edad" min="0" max="120" step="1" placeholder="Años">
+                        </div>
+                        <div class="campo">
+                            <label for="telefono">Teléfono:</label>
+                            <input type="tel" id="telefono" maxlength="25" placeholder="Ej. 3001234567">
                         </div>
                     </div>
-                    <div class="campo">
-                        <label for="edad">Edad:</label>
-                        <input type="number" id="edad" required>
+
+                    <h2>RX Definitiva</h2>
+                    <div class="datos_rx">
+                        <div class="campo">
+                            <label for="od">OD:</label>
+                            <input type="text" id="od" maxlength="40">
+                        </div>
+                        <div class="campo">
+                            <label for="oi">OI:</label>
+                            <input type="text" id="oi" maxlength="40">
+                        </div>
+                        <div class="campo">
+                            <label for="adicion">ADD:</label>
+                            <input type="text" id="adicion" maxlength="40">
+                        </div>
                     </div>
-                    <div class="campo">
-                        <label for="telefono">Teléfono:</label>
-                        <input type="tel" id="telefono" required>
+
+                    <h2>AVCC</h2>
+                    <div class="datos_avcc">
+                        <div class="campo">
+                            <label for="avcc-od">OD:</label>
+                            <input type="text" id="avcc-od" maxlength="40">
+                        </div>
+                        <div class="campo">
+                            <label for="avcc-oi">OI:</label>
+                            <input type="text" id="avcc-oi" maxlength="40">
+                        </div>
                     </div>
+
+                    <h2>Otros Datos</h2>
+                    <div class="otros_datos">
+                        <div class="campo">
+                            <label for="dp">D. Pupilar:</label>
+                            <input type="text" id="dp" maxlength="40">
+                        </div>
+                        <div class="campo">
+                            <label for="altura">Altura:</label>
+                            <input type="text" id="altura" maxlength="40">
+                        </div>
+                        <div class="campo">
+                            <label for="tipo">Tipo:</label>
+                            <input type="text" id="tipo" maxlength="40">
+                        </div>
+                        <div class="campo">
+                            <label for="filtro">Filtro:</label>
+                            <input type="text" id="filtro" maxlength="40">
+                        </div>
+                        <div class="campo">
+                            <label for="uso">Uso:</label>
+                            <input type="text" id="uso" maxlength="40">
+                        </div>
+                        <div class="campo">
+                            <label for="control">Control:</label>
+                            <input type="text" id="control" maxlength="40">
+                        </div>
+                        <div class="campo">
+                            <label for="distancia-nasopupilar-od">Distancia Nasopupilar OD:</label>
+                            <input type="text" id="distancia-nasopupilar-od" maxlength="40">
+                        </div>
+                        <div class="campo">
+                            <label for="distancia-nasopupilar-oi">Distancia Nasopupilar OI:</label>
+                            <input type="text" id="distancia-nasopupilar-oi" maxlength="40">
+                        </div>
+                    </div>
+
+                    <h2>Observaciones</h2>
+                    <textarea id="observaciones" rows="4" maxlength="1000" placeholder="Notas adicionales"></textarea>
+
+                    <div class="buttons">
+                        <button type="submit" id="btnGuardar">Guardar</button>
+                        <button type="button" id="btnLimpiar" class="boton-aviso">Limpiar datos</button>
+                        <button type="button" id="btnEliminar" class="boton-peligro">Eliminar paciente</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <section class="vista" id="vista-lista" role="tabpanel" aria-labelledby="tab-lista" hidden>
+            <div class="lista sombra">
+                <h2>Pacientes</h2>
+
+                <div class="lista-filtros">
+                    <input type="search" id="filtro-texto" placeholder="Buscar por nombre o documento" aria-label="Buscar por nombre o documento">
+                    <input type="date" id="filtro-desde" aria-label="Fecha desde">
+                    <input type="date" id="filtro-hasta" aria-label="Fecha hasta">
+                    <button type="button" id="btnFiltrar">Buscar</button>
+                    <button type="button" id="btnLimpiarFiltros" class="boton-aviso">Limpiar</button>
                 </div>
 
-                <h2>RX Definitiva</h2>
-                <div class="datos_rx">
-                    <div class="campo">
-                        <label for="od">OD:</label>
-                        <input type="text" id="od" required>
-                    </div>
-                    <div class="campo">
-                        <label for="oi">OI:</label>
-                        <input type="text" id="oi" required>
-                    </div>
-                    <div class="campo">
-                        <label for="adicion">ADD:</label>
-                        <input type="text" id="adicion" required>
-                    </div>
-                </div>
-                
-                <h2>AVCC</h2>
-                <div class="datos_avcc">
-                    <div class="campo">
-                        <label for="avcc-od">OD:</label>
-                        <input type="text" id="avcc-od" required>
-                    </div>
-                    <div class="campo">
-                        <label for="avcc-oi">OI:</label>
-                        <input type="text" id="avcc-oi" required>
-                    </div>
-                </div>   
+                <p id="lista-resumen" class="lista-resumen" role="status" aria-live="polite"></p>
 
-                <h2>Otros Datos</h2>
-                <div class="otros_datos">
-                    <div class="campo">
-                        <label for="dp">D. Pupilar:</label>
-                        <input type="text" id="dp" required>
-                    </div>
-                    <div class="campo">
-                        <label for="altura">Altura:</label>
-                        <input type="text" id="altura" required>
-                    </div>
-                    <div class="campo">
-                        <label for="tipo">Tipo:</label>
-                        <input type="text" id="tipo" required>
-                    </div>
-                    <div class="campo">
-                        <label for="filtro">Filtro:</label>
-                        <input type="text" id="filtro" required>
-                    </div>
-                    <div class="campo">
-                        <label for="uso">Uso:</label>
-                        <input type="text" id="uso" required>
-                    </div>
-                    <div class="campo">
-                        <label for="control">Control:</label>
-                        <input type="text" id="control" required>
-                    </div>
-                    <div class="campo">
-                        <label for="distancia-nasopupilar-od">Distancia Nasopupilar OD:</label>
-                        <input type="text" id="distancia-nasopupilar-od" required>
-                    </div>
-                    <div class="campo">
-                        <label for="distancia-nasopupilar-oi">Distancia Nasopupilar OI:</label>
-                        <input type="text" id="distancia-nasopupilar-oi" required>
-                    </div>
+                <div class="tabla-scroll">
+                    <table class="tabla-pacientes">
+                        <thead>
+                            <tr>
+                                <th scope="col">Documento</th>
+                                <th scope="col">Nombre</th>
+                                <th scope="col">Fecha</th>
+                                <th scope="col">Teléfono</th>
+                                <th scope="col">Altura</th>
+                                <th scope="col"><span class="visualmente-oculto">Acciones</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-cuerpo"></tbody>
+                    </table>
                 </div>
-                
-                <h2>Observaciones</h2>
-                <textarea id="observaciones" rows="4" required></textarea>
 
-                <div class="buttons">
-                    <button type="submit" id="btnGuardar">Guardar</button>
-                    <button type="button" id="btnLimpiar" style="background-color: #ffc107; color: #333;">Limpiar Datos</button>
-                    <button type="button" id="btnEliminar" style="background-color: #dc3545; color: white;">Eliminar Paciente</button>
-                </div>
-            </form>
-        </div>
+                <p id="lista-vacio" class="lista-vacio" hidden>No se encontraron pacientes.</p>
+            </div>
+        </section>
     </main>
+
     <script src="../js/renderer.js"></script>
 </body>
 </html>
