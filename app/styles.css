@@ -366,6 +366,22 @@ button:disabled {
     margin-top: 0;
 }
 
+.lista-cabecera {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem 1.2rem;
+}
+
+.lista-cabecera h2 {
+    margin-bottom: 0.8rem;
+}
+
+.lista-cabecera button {
+    margin-bottom: 0.8rem;
+}
+
 .lista-filtros {
     display: grid;
     grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) auto auto;

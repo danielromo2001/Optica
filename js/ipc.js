@@ -1,6 +1,9 @@
-const { ipcMain, app } = require('electron');
+const { ipcMain, app, dialog, BrowserWindow } = require('electron');
+const path = require('path');
+const db = require('./db');
 const pacientes = require('./pacientes');
 const { generarPDF } = require('./pdf');
+const { respaldar, nombreRespaldo } = require('./respaldo');
 
 // Envoltorio único para todos los canales: captura cualquier excepción y la
 // convierte en una respuesta uniforme. Así el renderer nunca recibe un rechazo
@@ -59,6 +62,26 @@ function registrarHandlers() {
     });
 
     registrarCanal('generar-pdf', (data) => generarPDF(data, app.getPath('documents')));
+
+    // Respaldo manual de la BD con un diálogo nativo "Guardar como".
+    registrarCanal('respaldar-datos', async () => {
+        const ventana = BrowserWindow.getFocusedWindow() || BrowserWindow.getAllWindows()[0];
+        const opciones = {
+            title: 'Guardar respaldo de la base de datos',
+            defaultPath: path.join(app.getPath('documents'), nombreRespaldo()),
+            filters: [{ name: 'Base de datos SQLite', extensions: ['db'] }]
+        };
+
+        const { canceled, filePath } = ventana
+            ? await dialog.showSaveDialog(ventana, opciones)
+            : await dialog.showSaveDialog(opciones);
+
+        if (canceled || !filePath) {
+            return { success: true, cancelado: true };
+        }
+
+        return { success: true, ...(await respaldar(db, filePath)) };
+    });
 }
 
 module.exports = { registrarHandlers };

@@ -142,7 +142,10 @@
 
         <section class="vista" id="vista-lista" role="tabpanel" aria-labelledby="tab-lista" hidden>
             <div class="lista sombra">
-                <h2>Pacientes</h2>
+                <div class="lista-cabecera">
+                    <h2>Pacientes</h2>
+                    <button type="button" id="btnRespaldo" class="boton-secundario" title="Guardar una copia de la base de datos">Respaldar datos</button>
+                </div>
 
                 <div class="lista-filtros">
                     <input type="search" id="filtro-texto" placeholder="Buscar por nombre o documento" aria-label="Buscar por nombre o documento">
@@ -151,6 +154,8 @@
                     <button type="button" id="btnFiltrar">Buscar</button>
                     <button type="button" id="btnLimpiarFiltros" class="boton-aviso">Limpiar</button>
                 </div>
+
+                <p id="lista-mensaje" class="mensaje" role="status" aria-live="polite" hidden></p>
 
                 <p id="lista-resumen" class="lista-resumen" role="status" aria-live="polite"></p>
 
