@@ -60,4 +60,34 @@ async function eliminar(documento) {
     return { changes: resultado.changes };
 }
 
-module.exports = { existe, buscar, guardar, actualizar, eliminar };
+async function listar({ texto = '', desde = '', hasta = '' } = {}) {
+    const condiciones = [];
+    const params = [];
+
+    const busqueda = String(texto || '').trim();
+    if (busqueda) {
+        const patron = `%${busqueda.replace(/([%_\\])/g, '\\$1')}%`;
+        condiciones.push("(nombre LIKE ? ESCAPE '\\' OR documento LIKE ? ESCAPE '\\')");
+        params.push(patron, patron);
+    }
+    if (desde) {
+        condiciones.push('fecha >= ?');
+        params.push(desde);
+    }
+    if (hasta) {
+        condiciones.push('fecha <= ?');
+        params.push(hasta);
+    }
+
+    const where = condiciones.length ? `WHERE ${condiciones.join(' AND ')}` : '';
+
+    return db.all(
+        `SELECT id, documento, nombre, fecha, telefono, edad, altura
+         FROM pacientes ${where}
+         ORDER BY fecha DESC, nombre ASC
+         LIMIT 200`,
+        params
+    );
+}
+
+module.exports = { existe, buscar, guardar, actualizar, eliminar, listar };
