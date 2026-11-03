@@ -40,6 +40,20 @@ async function impresoraPredeterminada(ventana) {
     }
 }
 
+// Opciones del trabajo de impresión. El tamaño va en micras y con el ancho
+// mayor que el alto: media carta horizontal (215,9 x 139,7 mm).
+function opcionesImpresion({ silencioso = true, impresora = null } = {}) {
+    const opciones = {
+        printBackground: true,
+        pageSize: TAMANO_MEDIA_CARTA,
+        margins: { marginType: 'none' },
+        scaleFactor: 100,
+        silent: silencioso
+    };
+    if (impresora) opciones.deviceName = impresora;
+    return opciones;
+}
+
 // Imprime la fórmula directamente en la impresora predeterminada a tamaño media
 // carta y sin diálogos. Si el sistema no puede imprimir en silencio, cae al
 // diálogo de impresión de Windows para que el usuario elija impresora.
@@ -65,19 +79,9 @@ async function imprimirFormula(data, {
             return { success: false, error: 'No hay ninguna impresora instalada o disponible.' };
         }
 
-        const opciones = {
-            printBackground: true,
-            pageSize: TAMANO_MEDIA_CARTA,
-            margins: { marginType: 'none' },
-            scaleFactor: 100
-        };
-        if (nombreImpresora) opciones.deviceName = nombreImpresora;
+        const opciones = opcionesImpresion({ silencioso, impresora: nombreImpresora });
 
-        const directa = await imprimir(
-            ventana,
-            { ...opciones, silent: silencioso },
-            ESPERA_SILENCIOSA
-        );
+        const directa = await imprimir(ventana, opciones, ESPERA_SILENCIOSA);
 
         if (directa.success) {
             return { success: true, impresora: impresora.name, dialogo: false };
@@ -112,4 +116,4 @@ async function imprimirFormula(data, {
     }
 }
 
-module.exports = { imprimirFormula };
+module.exports = { imprimirFormula, opcionesImpresion };

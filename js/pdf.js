@@ -14,9 +14,9 @@ function sanitizeFileName(value) {
     return cleaned.slice(0, 60) || 'sin_documento';
 }
 
-// Genera la fórmula en PDF a tamaño media carta usando el motor de impresión de
-// Chromium. Al ser el mismo HTML que se imprime, el papel y el archivo salen
-// idénticos.
+// Genera la fórmula en PDF a tamaño media carta horizontal usando el motor de
+// impresión de Chromium. Al ser el mismo HTML que se imprime, el papel y el
+// archivo salen idénticos.
 async function generarPDF(data, documentsPath, { diseno = DISENO_POR_DEFECTO } = {}) {
     const folderPath = path.join(documentsPath, 'Pacientes Optica');
     const pdfPath = path.join(folderPath, `Paciente_${sanitizeFileName(data.documento)}.pdf`);

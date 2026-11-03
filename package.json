@@ -9,8 +9,9 @@
     "test": "node --test",
     "postinstall": "node scripts/verificar-electron.js",
     "reparar-electron": "node scripts/verificar-electron.js",
-    "build": "electron-builder --win",
-    "build:dir": "electron-builder --dir"
+    "build": "npm run build:dir && npm run build:instalador",
+    "build:dir": "electron-builder --dir",
+    "build:instalador": "node scripts/crear-instalador.js"
   },
   "keywords": [],
   "author": "Daniel RoMo DEV",
@@ -51,13 +52,7 @@
       "!scripts/**/*"
     ],
     "win": {
-      "target": "nsis",
       "icon": "images/icon.ico"
-    },
-    "nsis": {
-      "oneClick": false,
-      "perMachine": false,
-      "allowToChangeInstallationDirectory": true
     }
   }
 }
