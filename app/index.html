@@ -21,7 +21,7 @@
     </header>
     <main class="contenedor">
         <div class="contenedor_formulario">
-            <form id="formulario" class="formulario sombra">
+            <form id="formulario" class="formulario sombra" novalidate>
                 <h2>Datos Paciente</h2>
                 <div class="datos_generales">
                     <div class="campo">
@@ -124,7 +124,7 @@
                 <textarea id="observaciones" rows="4" required></textarea>
 
                 <div class="buttons">
-                    <button id="btnGuardar">Guardar</button>
+                    <button type="submit" id="btnGuardar">Guardar</button>
                     <button type="button" id="btnLimpiar" style="background-color: #ffc107; color: #333;">Limpiar Datos</button>
                     <button type="button" id="btnEliminar" style="background-color: #dc3545; color: white;">Eliminar Paciente</button>
                 </div>
