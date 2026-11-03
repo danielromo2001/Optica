@@ -1,125 +1,111 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // Referencias a los botones
+    const formulario = document.getElementById("formulario");
     const btnGuardar = document.getElementById("btnGuardar");
     const btnBuscar = document.getElementById("btnBuscar");
     const btnLimpiar = document.getElementById("btnLimpiar");
     const btnEliminar = document.getElementById("btnEliminar");
 
-    // Validar que los botones existan
-    if (!btnGuardar || !btnBuscar || !btnLimpiar || !btnEliminar) {
-        console.error("Error: No se encontraron los botones necesarios");
+    if (!formulario || !btnGuardar || !btnBuscar || !btnLimpiar || !btnEliminar) {
+        console.error("Error: No se encontraron los elementos necesarios");
         return;
     }
 
-    // Función para limpiar los campos del formulario
-    const limpiarCampos = () => {
-        document.querySelectorAll("input, select, textarea").forEach((element) => {
-            element.value = ""; // Limpia el valor de cada campo
-        });
+    // Lee todos los campos del formulario y los devuelve como un objeto.
+    const leerFormulario = () => ({
+        fecha: document.getElementById("fecha").value,
+        entidad: document.getElementById("entidad").value,
+        nombre: document.getElementById("nombre").value,
+        documento: document.getElementById("documento").value,
+        edad: document.getElementById("edad").value,
+        telefono: document.getElementById("telefono").value,
+        od: document.getElementById("od").value,
+        oi: document.getElementById("oi").value,
+        adicion: document.getElementById("adicion").value,
+        avcc_od: document.getElementById("avcc-od").value,
+        avcc_oi: document.getElementById("avcc-oi").value,
+        dp: document.getElementById("dp").value,
+        altura: document.getElementById("altura").value,
+        tipo: document.getElementById("tipo").value,
+        filtro: document.getElementById("filtro").value,
+        uso: document.getElementById("uso").value,
+        control: document.getElementById("control").value,
+        observaciones: document.getElementById("observaciones").value,
+        distanciaNasopupilarOD: document.getElementById("distancia-nasopupilar-od").value,
+        distanciaNasopupilarOI: document.getElementById("distancia-nasopupilar-oi").value
+    });
+
+    // form.reset() vuelve a los valores por defecto del HTML (incluido el select).
+    const limpiarCampos = () => formulario.reset();
+
+    const bloquearBoton = (bloqueado) => {
+        btnGuardar.disabled = bloqueado;
+        btnGuardar.textContent = bloqueado ? "Guardando..." : "Guardar";
     };
 
-    // Función para desbloquear campos en caso de errores
-    const desbloquearCampos = () => {
-        document.querySelectorAll("input, select, textarea").forEach((element) => {
-            element.blur(); // Elimina el foco del elemento activo
-        });
-        setTimeout(() => {
-            document.body.style.display = "none";
-            document.body.offsetHeight; // Forzar reflujo
-            document.body.style.display = "";
-        }, 0);
-    };
+    // Guarda el paciente y, solo si el guardado fue correcto, genera el PDF.
+    const guardarPaciente = async () => {
+        const data = leerFormulario();
 
-    // Evento para guardar datos
-    btnGuardar.addEventListener("click", (event) => {
-        event.preventDefault();
-
-        const fecha = document.getElementById("fecha").value;
-        const entidad = document.getElementById("entidad").value;
-        const nombre = document.getElementById("nombre").value;
-        const documento = document.getElementById("documento").value;
-        const edad = document.getElementById("edad").value;
-        const telefono = document.getElementById("telefono").value;
-        const od = document.getElementById("od").value;
-        const oi = document.getElementById("oi").value;
-        const adicion = document.getElementById("adicion").value; 
-        const avcc_od = document.getElementById("avcc-od").value; 
-        const avcc_oi = document.getElementById("avcc-oi").value; 
-        const dp = document.getElementById("dp").value;
-        const altura = document.getElementById("altura").value;
-        const tipo = document.getElementById("tipo").value;
-        const filtro = document.getElementById("filtro").value;
-        const uso = document.getElementById("uso").value;
-        const control = document.getElementById("control").value;
-        const observaciones = document.getElementById("observaciones").value;
-        const distanciaNasopupilarOD = document.getElementById("distancia-nasopupilar-od").value;
-        const distanciaNasopupilarOI = document.getElementById("distancia-nasopupilar-oi").value;
-
-        if (!fecha || !nombre || !documento) {
-            alert("Por favor, completa todos los campos obligatorios.");
-            desbloquearCampos(); // Desbloquear campos después de la alerta
+        if (!data.fecha || !data.nombre || !data.documento) {
+            alert("Por favor, completa fecha, nombre y documento.");
             return;
         }
 
-        const data = { fecha, entidad, nombre, documento, edad, telefono, od, oi, adicion, avcc_od, avcc_oi, dp, altura, tipo, filtro, uso, control, observaciones, distanciaNasopupilarOD, distanciaNasopupilarOI };
-
-        window.api.validarDocumento(documento, (existe) => {
-            if (existe) {
-                if (confirm("El documento ya existe. ¿Deseas actualizar los datos?")) {
-                    window.api.actualizarConsulta(data, (response) => {
-                        if (response.success) {
-                            alert("Consulta actualizada exitosamente.");
-                            window.api.generarPDF(data).then((pdfResponse) => {
-                                if (pdfResponse.success) {
-                                    alert(`PDF guardado exitosamente en: ${pdfResponse.path}`);
-                                } else {
-                                    alert("Error al generar el PDF.");
-                                    desbloquearCampos(); // Desbloquear campos después de la alerta
-                                }
-                            });
-                            limpiarCampos();
-                        } else {
-                            alert("Error al actualizar la consulta.");
-                            desbloquearCampos(); // Desbloquear campos después de la alerta
-                        }
-                    });
-                }
-            } else {
-                console.log("Enviando datos al proceso principal:", data);
-                window.api.sendConsulta(data);
-                window.api.generarPDF(data).then((pdfResponse) => {
-                    if (pdfResponse.success) {
-                        alert(`PDF guardado exitosamente en: ${pdfResponse.path}`);
-                    } else {
-                        alert("Error al generar el PDF.");
-                        desbloquearCampos(); // Desbloquear campos después de la alerta
-                    }
-                });
-                limpiarCampos();
+        bloquearBoton(true);
+        try {
+            const existe = await window.api.validarDocumento(data.documento);
+            if (existe && !confirm("El documento ya existe. ¿Deseas actualizar los datos?")) {
+                return;
             }
-        });
+
+            const resultado = existe
+                ? await window.api.actualizarConsulta(data)
+                : await window.api.guardarConsulta(data);
+
+            if (!resultado || !resultado.success) {
+                alert(`No se pudieron guardar los datos.\n${resultado?.error || "Error desconocido"}`);
+                return;
+            }
+
+            const pdf = await window.api.generarPDF(data);
+            if (pdf && pdf.success) {
+                alert(`Datos guardados y PDF generado en:\n${pdf.path}`);
+                limpiarCampos();
+            } else {
+                // Los datos sí se guardaron: no se limpian para poder reintentar el PDF.
+                alert(`Datos guardados, pero no se pudo generar el PDF.\n${pdf?.error || ""}`);
+            }
+        } catch (error) {
+            console.error("Error inesperado al guardar:", error);
+            alert("Ocurrió un error inesperado al guardar los datos.");
+        } finally {
+            bloquearBoton(false);
+        }
+    };
+
+    // preventDefault en submit evita que pulsar Enter recargue la aplicación.
+    formulario.addEventListener("submit", (event) => {
+        event.preventDefault();
+        guardarPaciente();
     });
 
-    // Evento para buscar datos
-    btnBuscar.addEventListener("click", () => {
+    btnBuscar.addEventListener("click", async () => {
         const documento = document.getElementById("documento").value;
 
         if (!documento) {
             alert("Por favor, ingresa un documento para buscar.");
-            desbloquearCampos(); // Desbloquear campos después de la alerta
             return;
         }
 
-        window.api.buscarConsulta(documento, (data) => {
+        try {
+            const data = await window.api.buscarConsulta(documento);
             if (!data) {
                 alert("No se encontraron datos para el documento ingresado.");
-                desbloquearCampos(); // Desbloquear campos después de la alerta
                 return;
             }
 
-            // Llenar todos los campos del formulario con los datos obtenidos
             document.getElementById("fecha").value = data.fecha || "";
-            document.getElementById("entidad").value = data.entidad || "Natural";
+            document.getElementById("entidad").value = data.entidad || "Particular";
             document.getElementById("nombre").value = data.nombre || "";
             document.getElementById("documento").value = data.documento || "";
             document.getElementById("edad").value = data.edad || "";
@@ -138,42 +124,37 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("observaciones").value = data.observaciones || "";
             document.getElementById("distancia-nasopupilar-od").value = data.distanciaNasopupilarOD || "";
             document.getElementById("distancia-nasopupilar-oi").value = data.distanciaNasopupilarOI || "";
-        });
+        } catch (error) {
+            console.error("Error al buscar:", error);
+            alert("Ocurrió un error inesperado al buscar el paciente.");
+        }
     });
 
-    // Evento para limpiar los campos
     btnLimpiar.addEventListener("click", limpiarCampos);
 
-    // Evento para eliminar un paciente
-    btnEliminar.addEventListener("click", () => {
+    btnEliminar.addEventListener("click", async () => {
         const documento = document.getElementById("documento").value;
 
         if (!documento) {
             alert("Por favor, ingresa un documento para eliminar.");
-            desbloquearCampos(); // Desbloquear campos después de la alerta
             return;
         }
 
-        if (confirm("¿Estás seguro de que deseas eliminar este paciente?")) {
-            window.api.eliminarConsulta(documento, (response) => {
-                if (response.success) {
-                    alert("Paciente eliminado exitosamente.");
-                    limpiarCampos();
-                } else {
-                    alert("Error al eliminar el paciente.");
-                    desbloquearCampos(); // Desbloquear campos después de la alerta
-                }
-            });
+        if (!confirm("¿Estás seguro de que deseas eliminar este paciente?")) {
+            return;
         }
-    });
 
-    // Escucha el evento de confirmación de guardado
-    window.api.onConsultaGuardada((response) => {
-        if (response.success) {
-            alert("Consulta guardada exitosamente con ID: " + response.id);
-        } else {
-            alert("Error al guardar la consulta.");
-            desbloquearCampos();
+        try {
+            const resultado = await window.api.eliminarConsulta(documento);
+            if (resultado && resultado.success) {
+                alert("Paciente eliminado exitosamente.");
+                limpiarCampos();
+            } else {
+                alert(`No se pudo eliminar el paciente.\n${resultado?.error || "Error desconocido"}`);
+            }
+        } catch (error) {
+            console.error("Error al eliminar:", error);
+            alert("Ocurrió un error inesperado al eliminar el paciente.");
         }
     });
 });
