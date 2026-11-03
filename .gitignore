@@ -3,3 +3,10 @@ dist
 out
 Output
 optica-inno.iss
+
+# Base de datos local: contiene datos de pacientes y nunca debe versionarse.
+db/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
