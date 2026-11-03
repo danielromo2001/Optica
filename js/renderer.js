@@ -53,7 +53,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
         bloquearBoton(true);
         try {
-            const existe = await window.api.validarDocumento(data.documento);
+            const validacion = await window.api.validarDocumento(data.documento);
+            if (!validacion || !validacion.success) {
+                alert(`No se pudo comprobar el documento.\n${validacion?.error || "Error desconocido"}`);
+                return;
+            }
+
+            const existe = validacion.existe;
             if (existe && !confirm("El documento ya existe. ¿Deseas actualizar los datos?")) {
                 return;
             }
@@ -98,7 +104,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-            const data = await window.api.buscarConsulta(documento);
+            const resultado = await window.api.buscarConsulta(documento);
+            if (!resultado || !resultado.success) {
+                alert(`No se pudo buscar el paciente.\n${resultado?.error || "Error desconocido"}`);
+                return;
+            }
+
+            const data = resultado.paciente;
             if (!data) {
                 alert("No se encontraron datos para el documento ingresado.");
                 return;
