@@ -6,8 +6,8 @@ const { BrowserWindow } = require('electron');
 function crearVentanaOculta() {
     return new BrowserWindow({
         show: false,
-        width: 420,
-        height: 640,
+        width: 900,
+        height: 600,
         webPreferences: {
             contextIsolation: true,
             nodeIntegration: false,

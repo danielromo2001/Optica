@@ -2,7 +2,6 @@ node_modules
 dist
 out
 Output
-optica-inno.iss
 
 # Base de datos local: contiene datos de pacientes y nunca debe versionarse.
 db/

@@ -30,16 +30,24 @@ const PACIENTE = {
     observaciones: 'Sin novedad.'
 };
 
-test('media carta son 5,5 x 8,5 pulgadas en micras', () => {
-    assert.deepEqual(TAMANO_MEDIA_CARTA, { width: 139700, height: 215900 });
+test('media carta horizontal son 8,5 x 5,5 pulgadas en micras', () => {
+    assert.deepEqual(TAMANO_MEDIA_CARTA, { width: 215900, height: 139700 });
 });
 
-test('la plantilla fija el tamaño media carta', () => {
+test('la plantilla fija el tamaño media carta horizontal', () => {
     const html = construirHTML(PACIENTE);
 
-    assert.ok(html.includes('@page { size: 139.7mm 215.9mm; margin: 0; }'));
-    assert.ok(html.includes('width: 139.7mm'));
-    assert.ok(html.includes('height: 215.9mm'));
+    assert.ok(html.includes('@page { size: 215.9mm 139.7mm; margin: 0; }'));
+    assert.ok(html.includes('width: 215.9mm'));
+    assert.ok(html.includes('height: 139.7mm'));
+});
+
+test('reparte las mediciones en dos tablas para aprovechar el ancho', () => {
+    const html = construirHTML(PACIENTE);
+
+    assert.ok(html.includes('<caption>Refracción</caption>'));
+    assert.ok(html.includes('<caption>Lentes</caption>'));
+    assert.equal((html.match(/<table class="rx">/g) || []).length, 2);
 });
 
 test('incluye los datos y las mediciones del paciente', () => {
