@@ -311,6 +311,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const abrir = document.createElement("button");
             abrir.type = "button";
             abrir.textContent = "Abrir";
+            abrir.className = "boton-secundario";
             abrir.addEventListener("click", (event) => {
                 event.stopPropagation();
                 abrirPaciente(paciente.documento);
