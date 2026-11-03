@@ -382,6 +382,19 @@ button:disabled {
     margin-bottom: 0.8rem;
 }
 
+.lista-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+}
+
+.mensaje .boton-mensaje {
+    margin-left: 1rem;
+    padding: 0.35rem 1rem;
+    font-size: 1.25rem;
+    vertical-align: middle;
+}
+
 .lista-filtros {
     display: grid;
     grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) auto auto;

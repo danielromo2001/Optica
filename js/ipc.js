@@ -3,6 +3,7 @@ const path = require('path');
 const db = require('./db');
 const pacientes = require('./pacientes');
 const { generarPDF } = require('./pdf');
+const { imprimirFormula } = require('./impresion');
 const { respaldar, nombreRespaldo } = require('./respaldo');
 
 // Envoltorio único para todos los canales: captura cualquier excepción y la
@@ -20,6 +21,51 @@ function registrarCanal(canal, manejador) {
             return { success: false, error: mensaje };
         }
     });
+}
+
+// Importa la base de datos de una instalación anterior (o un respaldo).
+// `ventana` permite mostrarlo como diálogo modal de la ventana principal; se
+// usa tanto desde el botón «Importar datos» como en el primer arranque.
+async function importarBase(ventana = BrowserWindow.getFocusedWindow() || BrowserWindow.getAllWindows()[0]) {
+    const opciones = {
+        title: 'Importar base de datos',
+        buttonLabel: 'Importar',
+        properties: ['openFile'],
+        filters: [
+            { name: 'Base de datos SQLite', extensions: ['db'] },
+            { name: 'Todos los archivos', extensions: ['*'] }
+        ]
+    };
+
+    const apertura = ventana
+        ? await dialog.showOpenDialog(ventana, opciones)
+        : await dialog.showOpenDialog(opciones);
+
+    if (apertura.canceled || !apertura.filePaths.length) {
+        return { success: true, cancelado: true };
+    }
+
+    const mensaje = {
+        type: 'warning',
+        title: 'Importar base de datos',
+        message: '¿Reemplazar los datos actuales por los del archivo?',
+        detail: 'Antes de importar se guardará una copia de la base actual en la carpeta de datos. '
+            + 'Los pacientes que no estén en el archivo importado dejarán de aparecer.',
+        buttons: ['Cancelar', 'Reemplazar datos'],
+        defaultId: 1,
+        cancelId: 0,
+        noLink: true
+    };
+
+    const confirmacion = ventana
+        ? await dialog.showMessageBox(ventana, mensaje)
+        : await dialog.showMessageBox(mensaje);
+
+    if (confirmacion.response !== 1) {
+        return { success: true, cancelado: true };
+    }
+
+    return { success: true, ...(await db.reemplazarBase(apertura.filePaths[0])) };
 }
 
 function registrarHandlers() {
@@ -63,6 +109,12 @@ function registrarHandlers() {
 
     registrarCanal('generar-pdf', (data) => generarPDF(data, app.getPath('documents')));
 
+    // Impresión directa a la impresora predeterminada, tamaño media carta.
+    registrarCanal('imprimir-formula', (data) => imprimirFormula(data));
+
+    // Importa la base de datos de una instalación anterior (o un respaldo).
+    registrarCanal('importar-datos', () => importarBase());
+
     // Respaldo manual de la BD con un diálogo nativo "Guardar como".
     registrarCanal('respaldar-datos', async () => {
         const ventana = BrowserWindow.getFocusedWindow() || BrowserWindow.getAllWindows()[0];
@@ -84,4 +136,4 @@ function registrarHandlers() {
     });
 }
 
-module.exports = { registrarHandlers };
+module.exports = { registrarHandlers, importarBase };

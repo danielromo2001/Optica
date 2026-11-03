@@ -1,8 +1,8 @@
 # OpticaApp
 
-Aplicación de escritorio para registrar pacientes y generar fórmulas ópticas en PDF. Funciona sin conexión y guarda los datos en el equipo, no en la nube.
+Aplicación de escritorio para registrar pacientes, generar fórmulas ópticas en PDF e imprimirlas directamente. Funciona sin conexión y guarda los datos en el equipo, no en la nube.
 
-Hecha con Electron + SQLite (`sqlite3`) + PDFKit.
+Hecha con Electron + SQLite (`sqlite3`); el PDF y la impresión usan el motor de Chromium con una única plantilla HTML, para que el papel salga igual que el archivo.
 
 ## Características
 
@@ -10,7 +10,10 @@ Hecha con Electron + SQLite (`sqlite3`) + PDFKit.
 - **Búsqueda por documento** y detección de pacientes existentes.
 - **Listado de pacientes** con búsqueda por nombre/documento y filtro por rango de fechas.
 - **Edición y eliminación** desde el listado o desde el formulario.
-- **PDF por paciente** en `Documentos/Pacientes Optica/`.
+- **PDF por paciente** en `Documentos/Pacientes Optica/`, tamaño media carta.
+- **Impresión directa** a la impresora predeterminada, también en tamaño media carta, sin pasar por Adobe Reader.
+- **Dos diseños de fórmula** (`clasica` y `moderna`) generados desde la misma plantilla.
+- **Importar datos** de una instalación anterior, con copia de seguridad automática antes de reemplazar.
 - **Respaldo manual** de la base de datos desde la propia app (*Pacientes → Respaldar datos*).
 - **Validación en el proceso principal**: el renderer no puede saltarse las reglas.
 - Atajos: **Ctrl+S** guardar, **Ctrl+F** buscar.
@@ -50,22 +53,56 @@ La base de datos vive en el directorio de datos del usuario, nunca dentro de la 
 | Linux | `~/.config/optica_app/optica.db` |
 | macOS | `~/Library/Application Support/optica_app/optica.db` |
 
-Al arrancar por primera vez, si existe una base antigua en `db/optica.db`, se copia automáticamente a esa ruta.
+Al arrancar por primera vez, si existe una base antigua en `db/optica.db` o en la carpeta de una instalación anterior (`db/` o `resources/app/db/`), se copia automáticamente a esa ruta. Si la nueva app arranca con la base vacía, ofrece importar los datos de la versión anterior.
 
 > **Privacidad:** el repositorio **no** incluye la base de datos. `.gitignore` excluye `db/` y cualquier `*.db`. No subas nunca una base con datos de pacientes: usa el botón *Respaldar datos* y guarda la copia fuera del proyecto.
 
+## Impresión y PDF
+
+La fórmula se construye una sola vez como HTML y se usa para las dos salidas, así que el papel y el archivo son idénticos:
+
+- **Imprimir:** botón *Imprimir* en cada fila del listado o en el aviso que aparece al guardar. Envía el trabajo directamente a la impresora predeterminada, en tamaño **media carta** (139,7 × 215,9 mm, 5,5 × 8,5 in) y sin abrir Adobe Reader.
+- **PDF:** al guardar se crea `Documentos/Pacientes Optica/Paciente_<documento>.pdf`, también en media carta (396 × 612 pt). Si el contenido es muy largo, pasa a una segunda página en lugar de recortarse.
+
+Si Windows no permite imprimir en silencio (controlador, permisos o impresora ocupada), la app muestra el diálogo de impresión para elegir impresora y confirmar.
+
+Para que la impresión directa salga en media carta, la impresora debe admitir ese tamaño. En Windows: *Configuración → Bluetooth y dispositivos → Impresoras y escáneres → [impresora] → Preferencias de impresión → Tamaño de papel: media carta (5,5 × 8,5 in)*. La app envía el tamaño en cada trabajo; si el controlador no lo admite, usa el diálogo y selecciónalo.
+
+### Cambiar el diseño de la fórmula
+
+Hay dos variantes: `clasica` (por defecto) y `moderna`. Para cambiar la que usa toda la app, edita `DISENO_POR_DEFECTO` en `js/formula.js`. También se puede pedir una concreta al generar el PDF o imprimir:
+
+```js
+generarPDF(datos, documentos, { diseno: 'moderna' });
+imprimirFormula(datos, { diseno: 'moderna' });
+```
+
+## Instalar la actualización sin perder datos
+
+Los pacientes **no** viven dentro de la carpeta de la app: están en `%APPDATA%\optica_app\optica.db`. El instalador no toca esa carpeta, así que actualizar no borra los datos. Aun así, conviene guardar una copia antes.
+
+1. Localiza la base de datos de la versión vieja. Normalmente está en `<carpeta de la app vieja>\resources\app\db\optica.db`. Copia ese archivo a `Documentos` o a un USB.
+2. Cierra la app vieja.
+3. Instala la nueva versión con `OpticaApp Setup <versión>.exe`. No desinstales la versión vieja hasta comprobar que están todos los pacientes.
+4. Abre la nueva app. Si la base está vacía, pregunta si quieres importar: elige **Importar datos** y selecciona el `optica.db` del paso 1. También puedes hacerlo después en *Pacientes → Importar datos*.
+5. Antes de reemplazar, la app guarda la base actual como `optica-antes-de-importar-<fecha>.db` en `%APPDATA%\optica_app\`.
+6. Revisa el listado. Si algo salió mal, vuelve a importar el respaldo o la base vieja.
+
+La importación conserva el historial y migra el esquema antiguo automáticamente (`color` → `altura`, documentos duplicados, índices). Si instalas la nueva versión sobre la carpeta de la vieja, la detección del primer arranque puede copiarla sola.
+
 ## Respaldo y restauración
 
-**Crear un respaldo:** pestaña *Pacientes* → *Respaldar datos*. Se abre un diálogo para elegir dónde guardar el archivo (por defecto `Documentos`, con nombre `optica-respaldo-AAAA-MM-DD_HHMM.db`).
+**Crear un respaldo:** pestaña *Pacientes* → *Respaldar datos*. Se abre un diálogo para elegir dónde guardar el archivo (por defecto `Documentos`, con nombre `optica-respaldo-AAAA-MM-DD_HHMMSS.db`).
 
 El respaldo usa `VACUUM INTO`, así que es una copia consistente aunque la app esté abierta.
 
 **Restaurar:**
 
-1. Cierra la app.
-2. Guarda una copia de la base actual.
-3. Copia el respaldo sobre `%APPDATA%\optica_app\optica.db`.
-4. Abre la app y comprueba el listado.
+1. Abre la app y ve a *Pacientes → Importar datos*.
+2. Selecciona el archivo de respaldo. La app guarda antes una copia de la base actual.
+3. Comprueba el listado.
+
+También se puede restaurar a mano: cierra la app, copia el respaldo sobre `%APPDATA%\optica_app\optica.db` y vuelve a abrirla.
 
 ## Scripts
 
@@ -88,15 +125,18 @@ js/
   ipc.js              Canales IPC (validación y errores centralizados)
   preload.js          Puente seguro con contextIsolation
   renderer.js         Lógica de la interfaz
-  db.js               Conexión SQLite, ruta en userData y respaldo
+  db.js               Conexión SQLite, ruta en userData, respaldo e importación
   migraciones.js      Esquema, índices y PRAGMA user_version
   pacientes.js        Consultas de pacientes (upsert idempotente)
   validacion.js       Normalización y validación de datos
   respaldo.js         Nombre y creación del respaldo
-  pdf.js              Generación del PDF
+  formula.js          Plantilla HTML de la fórmula (diseños y tamaño media carta)
+  pagina.js           Ventana oculta para renderizar la fórmula con Chromium
+  pdf.js              Generación del PDF con printToPDF
+  impresion.js        Impresión directa y respaldo con diálogo del sistema
 scripts/
   verificar-electron.js  Repara instalaciones incompletas de Electron
-test/                 Pruebas de validación, datos, migraciones y respaldo
+test/                 Pruebas de validación, datos, migraciones, respaldo, fórmula e importación
 ```
 
 ## Generar el instalador
@@ -130,6 +170,8 @@ Cubren:
 - Capa de datos contra SQLite real: alta, upsert sin duplicados, actualización, borrado, búsqueda y filtros.
 - Migración de una base antigua (`color` → `altura`, duplicados, `UNIQUE`, `user_version`) e idempotencia.
 - Respaldo: nombre, copia legible y rechazo de destinos inválidos.
+- Fórmula: tamaño media carta, escape de HTML, datos vacíos y las dos variantes de diseño.
+- Importación: validación del archivo SQLite, rechazo de archivos inválidos o en uso, migración y copia de seguridad previa.
 
 Las pruebas usan bases temporales; nunca tocan la base real.
 
