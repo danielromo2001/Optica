@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const listaResumen = $("lista-resumen");
     const tablaCuerpo = $("tabla-cuerpo");
     const listaVacio = $("lista-vacio");
+    const btnImportar = $("btnImportar");
     const btnRespaldo = $("btnRespaldo");
     const listaMensaje = $("lista-mensaje");
 
@@ -31,10 +32,20 @@ document.addEventListener("DOMContentLoaded", () => {
     // Mensajes
     // ------------------------------------------------------------------
 
-    const mostrarMensaje = (texto, tipo = "info") => {
+    const mostrarMensaje = (texto, tipo = "info", accion = null) => {
         mensaje.textContent = texto;
         mensaje.className = `mensaje ${tipo}`;
         mensaje.hidden = false;
+
+        // Acción opcional dentro del aviso (por ejemplo, "Imprimir" al guardar).
+        if (accion) {
+            const boton = document.createElement("button");
+            boton.type = "button";
+            boton.className = "boton-mensaje";
+            boton.textContent = accion.etiqueta;
+            boton.addEventListener("click", () => accion.alHacerClic(boton));
+            mensaje.appendChild(boton);
+        }
     };
 
     const ocultarMensaje = () => {
@@ -51,6 +62,68 @@ document.addEventListener("DOMContentLoaded", () => {
     const ocultarMensajeLista = () => {
         listaMensaje.hidden = true;
         listaMensaje.textContent = "";
+    };
+
+    // ------------------------------------------------------------------
+    // Impresión
+    // ------------------------------------------------------------------
+
+    // Envía la fórmula a la impresora predeterminada en tamaño media carta.
+    // `avisar` permite mostrar el resultado en el formulario o en el listado.
+    const imprimirFormula = async (data, { avisar = mostrarMensaje, boton = null } = {}) => {
+        if (boton) {
+            boton.disabled = true;
+            boton.textContent = "Imprimiendo...";
+        }
+
+        try {
+            const resultado = await window.api.imprimirFormula(data);
+
+            if (resultado && resultado.success) {
+                const destino = resultado.dialogo
+                    ? "desde el diálogo de impresión"
+                    : `en ${resultado.impresora}`;
+                avisar(`Fórmula enviada a imprimir ${destino}.`, "exito");
+            } else if (resultado?.cancelado) {
+                avisar("Impresión cancelada.", "info");
+            } else {
+                avisar(resultado?.error || "No se pudo imprimir la fórmula.", "error");
+            }
+        } catch (error) {
+            console.error("Error al imprimir:", error);
+            avisar("Ocurrió un error inesperado al imprimir.", "error");
+        } finally {
+            if (boton) {
+                boton.disabled = false;
+                boton.textContent = "Imprimir";
+            }
+        }
+    };
+
+    // Carga los datos guardados del paciente y los imprime (acción del listado).
+    const imprimirPaciente = async (documento, boton = null) => {
+        if (boton) {
+            boton.disabled = true;
+            boton.textContent = "Imprimiendo...";
+        }
+
+        try {
+            const resultado = await window.api.buscarConsulta(documento);
+            if (!resultado || !resultado.success || !resultado.paciente) {
+                mostrarMensajeLista("No se pudo cargar el paciente para imprimir.", "error");
+                return;
+            }
+
+            await imprimirFormula(resultado.paciente, { avisar: mostrarMensajeLista, boton });
+        } catch (error) {
+            console.error("Error al imprimir el paciente:", error);
+            mostrarMensajeLista("Ocurrió un error inesperado al imprimir.", "error");
+        } finally {
+            if (boton) {
+                boton.disabled = false;
+                boton.textContent = "Imprimir";
+            }
+        }
     };
 
     // ------------------------------------------------------------------
@@ -189,13 +262,23 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
+            const pacienteGuardado = { ...data };
             const pdf = await window.api.generarPDF(data);
             limpiarFormulario();
 
+            const imprimirGuardado = {
+                etiqueta: "Imprimir",
+                alHacerClic: (boton) => imprimirFormula(pacienteGuardado, { avisar: mostrarMensaje, boton })
+            };
+
             if (pdf && pdf.success) {
-                mostrarMensaje(`Paciente guardado. PDF: ${pdf.path}`, "exito");
+                mostrarMensaje(`Paciente guardado. PDF: ${pdf.path}`, "exito", imprimirGuardado);
             } else {
-                mostrarMensaje(`Paciente guardado, pero el PDF falló: ${pdf?.error || "error desconocido"}`, "error");
+                mostrarMensaje(
+                    `Paciente guardado, pero el PDF falló: ${pdf?.error || "error desconocido"}`,
+                    "error",
+                    imprimirGuardado
+                );
             }
         } catch (error) {
             console.error("Error al guardar:", error);
@@ -330,6 +413,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 abrirPaciente(paciente.documento);
             });
 
+            const imprimir = document.createElement("button");
+            imprimir.type = "button";
+            imprimir.textContent = "Imprimir";
+            imprimir.className = "boton-secundario";
+            imprimir.title = "Imprimir la fórmula en tamaño media carta";
+            imprimir.addEventListener("click", (event) => {
+                event.stopPropagation();
+                imprimirPaciente(paciente.documento, imprimir);
+            });
+
             const borrar = document.createElement("button");
             borrar.type = "button";
             borrar.textContent = "Eliminar";
@@ -340,6 +433,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             acciones.appendChild(abrir);
+            acciones.appendChild(imprimir);
             acciones.appendChild(borrar);
             fila.appendChild(acciones);
 
@@ -368,6 +462,10 @@ document.addEventListener("DOMContentLoaded", () => {
             const pacientes = resultado.pacientes || [];
             pintarFilas(pacientes);
 
+            const hayFiltros = Boolean(filtros.texto || filtros.desde || filtros.hasta);
+            listaVacio.textContent = hayFiltros
+                ? "No se encontraron pacientes con esos filtros."
+                : "Todavía no hay pacientes. Si vienes de la versión anterior, usa «Importar datos» para traer tu base de datos.";
             listaVacio.hidden = pacientes.length > 0;
             listaResumen.textContent = pacientes.length === 1
                 ? "1 paciente"
@@ -396,6 +494,40 @@ document.addEventListener("DOMContentLoaded", () => {
         ocultarMensajeLista();
         cargarLista();
         filtroTexto.focus();
+    });
+
+    // ------------------------------------------------------------------
+    // Importar la base de datos de una instalación anterior
+    // ------------------------------------------------------------------
+
+    btnImportar.addEventListener("click", async () => {
+        btnImportar.disabled = true;
+        ocultarMensajeLista();
+
+        try {
+            const resultado = await window.api.importarDatos();
+
+            if (!resultado || !resultado.success) {
+                mostrarMensajeLista(resultado?.error || "No se pudo importar la base de datos.", "error");
+                return;
+            }
+            if (resultado.cancelado) return;
+
+            await cargarLista();
+
+            const total = resultado.total === 1
+                ? "1 paciente"
+                : `${resultado.total} pacientes`;
+            const respaldo = resultado.respaldo
+                ? ` Se guardó una copia de la base anterior en ${resultado.respaldo}.`
+                : "";
+            mostrarMensajeLista(`Datos importados: ${total}.${respaldo}`, "exito");
+        } catch (error) {
+            console.error("Error al importar:", error);
+            mostrarMensajeLista("Ocurrió un error inesperado al importar la base de datos.", "error");
+        } finally {
+            btnImportar.disabled = false;
+        }
     });
 
     // ------------------------------------------------------------------
