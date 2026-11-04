@@ -34,7 +34,8 @@ const FILAS = [
 ];
 
 const GRUPOS = [
-    { clave: 'refraccion', titulo: 'Refracción' },
+    // La refracción lleva encabezado Concepto/OD/OI; los lentes no.
+    { clave: 'refraccion', titulo: 'Refracción', encabezado: true },
     { clave: 'lentes', titulo: 'Lentes' }
 ];
 
@@ -87,8 +88,14 @@ function tablaHTML(grupo, datos) {
         .map((fila) => filaHTML(fila, datos))
         .join('');
 
-    return `<table class="rx">
+    const encabezado = grupo.encabezado
+        ? `<thead><tr><th scope="col">Concepto</th><th scope="col">OD</th><th scope="col">OI</th></tr></thead>`
+        : '';
+    const clase = grupo.encabezado ? 'rx rx--encabezado' : 'rx';
+
+    return `<table class="${clase}">
         <caption>${escapar(grupo.titulo)}</caption>
+        ${encabezado}
         <tbody>${filas}</tbody>
     </table>`;
 }
@@ -164,6 +171,8 @@ const CSS_BASE = `
         text-transform: uppercase;
     }
     table.rx th, table.rx td { padding: 1.35mm 2mm; font-size: 8.5pt; }
+    table.rx thead th { text-align: center; }
+    table.rx thead th:first-child { text-align: left; }
     table.rx td { text-align: center; font-variant-numeric: tabular-nums; }
     table.rx td.unico { text-align: left; padding-left: 2.6mm; }
     table.rx td.unico.centrado { text-align: center; padding-left: 2mm; }
@@ -198,6 +207,14 @@ const CSS_CLASICA = `
     }
     table.rx caption { color: #1770D5; }
     table.rx th, table.rx td { border: 0.25mm solid #cfd8e3; }
+    table.rx--encabezado thead th {
+        background: #1770D5;
+        color: #ffffff;
+        font-size: 7.3pt;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
     table.rx tbody th { width: 46%; text-align: left; background: #eef4fb; color: #26313d; font-weight: 600; }
     table.rx tbody tr:nth-child(even) td { background: #fafcfe; }
     .observaciones h3 { color: #1770D5; }
@@ -220,6 +237,14 @@ const CSS_MODERNA = `
     .paciente { border-bottom: 0.3mm solid #d7dee7; padding-bottom: 2mm; margin-top: 2mm; }
     .dato .et { color: #8a929c; }
     table.rx caption { color: #8a929c; }
+    table.rx--encabezado thead th {
+        color: #1770D5;
+        font-size: 7.2pt;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        border-bottom: 0.5mm solid #1770D5;
+    }
     table.rx tbody th { width: 46%; text-align: left; font-weight: 400; color: #6b7480; border-bottom: 0.2mm solid #e4e9ef; }
     table.rx tbody td { border-bottom: 0.2mm solid #e4e9ef; font-size: 8.8pt; font-weight: 600; }
     table.rx tbody tr:nth-child(even) th,

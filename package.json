@@ -1,6 +1,6 @@
 {
   "name": "optica_app",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "App para la gestión de fórmulas ópticas",
   "main": "js/main.js",
   "scripts": {
