@@ -12,7 +12,7 @@
 ; El script de npm pasa la versión de package.json; si se compila a mano, se
 ; usa este valor.
 #ifndef MyAppVersion
-  #define MyAppVersion "1.1.0"
+  #define MyAppVersion "1.2.0"
 #endif
 #define MyAppPublisher "Daniel RoMo DEV"
 #define MyAppExeName "OpticaApp.exe"

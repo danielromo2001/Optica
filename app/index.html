@@ -33,8 +33,12 @@
                     <h2>Datos Paciente</h2>
                     <div class="datos_generales">
                         <div class="campo">
-                            <label for="fecha">Fecha:</label>
-                            <input type="date" id="fecha" required>
+                            <label for="fechaConsulta">Fecha de la consulta:</label>
+                            <input type="date" id="fechaConsulta" required>
+                        </div>
+                        <div class="campo">
+                            <label for="fechaNacimiento">Fecha de nacimiento:</label>
+                            <input type="date" id="fechaNacimiento">
                         </div>
                         <div class="campo">
                             <label for="entidad">Entidad:</label>
@@ -55,8 +59,8 @@
                             </div>
                         </div>
                         <div class="campo">
-                            <label for="edad">Edad:</label>
-                            <input type="number" id="edad" min="0" max="120" step="1" placeholder="Años">
+                            <label for="edad">Edad (automática):</label>
+                            <input type="number" id="edad" min="0" max="120" step="1" placeholder="Se calcula con la fecha de nacimiento" readonly title="Se calcula automáticamente a partir de la fecha de nacimiento y la fecha de la consulta">
                         </div>
                         <div class="campo">
                             <label for="telefono">Teléfono:</label>
@@ -152,8 +156,8 @@
 
                 <div class="lista-filtros">
                     <input type="search" id="filtro-texto" placeholder="Buscar por nombre o documento" aria-label="Buscar por nombre o documento">
-                    <input type="date" id="filtro-desde" aria-label="Fecha desde">
-                    <input type="date" id="filtro-hasta" aria-label="Fecha hasta">
+                    <input type="date" id="filtro-desde" aria-label="Fecha de consulta desde" title="Fecha de consulta desde">
+                    <input type="date" id="filtro-hasta" aria-label="Fecha de consulta hasta" title="Fecha de consulta hasta">
                     <button type="button" id="btnFiltrar">Buscar</button>
                     <button type="button" id="btnLimpiarFiltros" class="boton-aviso">Limpiar</button>
                 </div>
@@ -168,7 +172,7 @@
                             <tr>
                                 <th scope="col">Documento</th>
                                 <th scope="col">Nombre</th>
-                                <th scope="col">Fecha</th>
+                                <th scope="col">Fecha consulta</th>
                                 <th scope="col">Teléfono</th>
                                 <th scope="col">Altura</th>
                                 <th scope="col"><span class="visualmente-oculto">Acciones</span></th>
@@ -183,6 +187,7 @@
         </section>
     </main>
 
+    <script src="../js/fechas.js"></script>
     <script src="../js/renderer.js"></script>
 </body>
 </html>

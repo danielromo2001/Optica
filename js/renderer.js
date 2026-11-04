@@ -28,6 +28,12 @@ document.addEventListener("DOMContentLoaded", () => {
     let documentoEnEdicion = null;
     let temporizadorBusqueda = null;
 
+    const fechaHoy = () => {
+        const hoy = new Date();
+        const dos = (valor) => String(valor).padStart(2, "0");
+        return `${hoy.getFullYear()}-${dos(hoy.getMonth() + 1)}-${dos(hoy.getDate())}`;
+    };
+
     // ------------------------------------------------------------------
     // Mensajes
     // ------------------------------------------------------------------
@@ -130,31 +136,49 @@ document.addEventListener("DOMContentLoaded", () => {
     // Formulario
     // ------------------------------------------------------------------
 
-    const leerFormulario = () => ({
-        fecha: $("fecha").value,
-        entidad: $("entidad").value,
-        nombre: $("nombre").value,
-        documento: $("documento").value,
-        edad: $("edad").value,
-        telefono: $("telefono").value,
-        od: $("od").value,
-        oi: $("oi").value,
-        adicion: $("adicion").value,
-        avcc_od: $("avcc-od").value,
-        avcc_oi: $("avcc-oi").value,
-        dp: $("dp").value,
-        altura: $("altura").value,
-        tipo: $("tipo").value,
-        filtro: $("filtro").value,
-        uso: $("uso").value,
-        control: $("control").value,
-        observaciones: $("observaciones").value,
-        distanciaNasopupilarOD: $("distancia-nasopupilar-od").value,
-        distanciaNasopupilarOI: $("distancia-nasopupilar-oi").value
-    });
+    const leerFormulario = () => {
+        const fechaConsulta = $("fechaConsulta").value;
+        const fechaNacimiento = $("fechaNacimiento").value;
+        const edadCalculada = fechaNacimiento
+            ? Fechas.calcularEdad(fechaNacimiento, fechaConsulta || fechaHoy())
+            : null;
+
+        return {
+            fecha: fechaConsulta,
+            fechaConsulta,
+            fechaNacimiento,
+            entidad: $("entidad").value,
+            nombre: $("nombre").value,
+            documento: $("documento").value,
+            edad: fechaNacimiento
+                ? (edadCalculada === null ? "" : String(edadCalculada))
+                : $("edad").value,
+            telefono: $("telefono").value,
+            od: $("od").value,
+            oi: $("oi").value,
+            adicion: $("adicion").value,
+            avcc_od: $("avcc-od").value,
+            avcc_oi: $("avcc-oi").value,
+            dp: $("dp").value,
+            altura: $("altura").value,
+            tipo: $("tipo").value,
+            filtro: $("filtro").value,
+            uso: $("uso").value,
+            control: $("control").value,
+            observaciones: $("observaciones").value,
+            distanciaNasopupilarOD: $("distancia-nasopupilar-od").value,
+            distanciaNasopupilarOI: $("distancia-nasopupilar-oi").value
+        };
+    };
 
     const rellenarFormulario = (data) => {
-        $("fecha").value = data.fecha || "";
+        // Las bases migradas pueden tener la fecha de consulta vacía; no se
+        // rellena con "fecha", porque en esos registros "fecha" era la de
+        // nacimiento.
+        $("fechaConsulta").value = data.fechaConsulta !== undefined
+            ? (data.fechaConsulta || "")
+            : (data.fecha || "");
+        $("fechaNacimiento").value = data.fechaNacimiento || "";
         $("entidad").value = data.entidad || "Particular";
         $("nombre").value = data.nombre || "";
         $("documento").value = data.documento || "";
@@ -176,8 +200,20 @@ document.addEventListener("DOMContentLoaded", () => {
         $("distancia-nasopupilar-oi").value = data.distanciaNasopupilarOI || "";
     };
 
+    // La edad se calcula sola con la fecha de nacimiento y la fecha de la
+    // consulta. Si no hay fecha de nacimiento (registros antiguos), se conserva
+    // la edad guardada.
+    const actualizarEdad = () => {
+        const fechaNacimiento = $("fechaNacimiento").value;
+        if (!fechaNacimiento) return;
+
+        const edad = Fechas.calcularEdad(fechaNacimiento, $("fechaConsulta").value || fechaHoy());
+        $("edad").value = edad === null ? "" : String(edad);
+    };
+
     const limpiarFormulario = () => {
         formulario.reset();
+        $("fechaConsulta").value = fechaHoy();
         documentoEnEdicion = null;
         modoEdicion.hidden = true;
         ocultarMensaje();
@@ -229,8 +265,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const guardarPaciente = async () => {
         const data = leerFormulario();
 
-        if (!data.fecha || !data.nombre || !data.documento) {
-            mostrarMensaje("Completa fecha, nombre y documento.", "error");
+        if (!data.fechaConsulta || !data.nombre || !data.documento) {
+            mostrarMensaje("Completa la fecha de la consulta, el nombre y el documento.", "error");
             return;
         }
 
@@ -292,6 +328,11 @@ document.addEventListener("DOMContentLoaded", () => {
         event.preventDefault();
         guardarPaciente();
     });
+
+    $("fechaNacimiento").addEventListener("input", actualizarEdad);
+    $("fechaNacimiento").addEventListener("change", actualizarEdad);
+    $("fechaConsulta").addEventListener("input", actualizarEdad);
+    $("fechaConsulta").addEventListener("change", actualizarEdad);
 
     // ------------------------------------------------------------------
     // Buscar por documento y eliminar desde el formulario
@@ -397,7 +438,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             fila.appendChild(crearCelda(paciente.documento));
             fila.appendChild(crearCelda(paciente.nombre));
-            fila.appendChild(crearCelda(formatearFecha(paciente.fecha)));
+            fila.appendChild(crearCelda(formatearFecha(paciente.fechaConsulta) || "—"));
             fila.appendChild(crearCelda(paciente.telefono || "—"));
             fila.appendChild(crearCelda(paciente.altura || "—"));
 
@@ -574,6 +615,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Primera carga: fecha de hoy y vista de formulario.
-    $("fecha").value = new Date().toISOString().slice(0, 10);
+    // Primera carga: fecha de la consulta de hoy y vista de formulario.
+    $("fechaConsulta").value = fechaHoy();
 });

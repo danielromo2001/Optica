@@ -71,20 +71,20 @@ async function listar({ texto = '', desde = '', hasta = '' } = {}) {
         params.push(patron, patron);
     }
     if (desde) {
-        condiciones.push('fecha >= ?');
+        condiciones.push('fechaConsulta >= ?');
         params.push(desde);
     }
     if (hasta) {
-        condiciones.push('fecha <= ?');
+        condiciones.push('fechaConsulta <= ?');
         params.push(hasta);
     }
 
     const where = condiciones.length ? `WHERE ${condiciones.join(' AND ')}` : '';
 
     return db.all(
-        `SELECT id, documento, nombre, fecha, telefono, edad, altura
+        `SELECT id, documento, nombre, fechaConsulta, telefono, edad, altura
          FROM pacientes ${where}
-         ORDER BY fecha DESC, nombre ASC
+         ORDER BY fechaConsulta DESC, nombre ASC
          LIMIT 200`,
         params
     );

@@ -1,5 +1,8 @@
+const { calcularEdad } = require('./fechas');
+
 const CAMPOS = [
-    'fecha', 'entidad', 'nombre', 'documento', 'edad', 'telefono',
+    'fecha', 'fechaConsulta', 'fechaNacimiento', 'entidad', 'nombre',
+    'documento', 'edad', 'telefono',
     'od', 'oi', 'adicion', 'avcc_od', 'avcc_oi', 'dp', 'altura',
     'tipo', 'filtro', 'uso', 'control', 'observaciones',
     'distanciaNasopupilarOD', 'distanciaNasopupilarOI'
@@ -55,19 +58,42 @@ function validarPaciente(entrada = {}) {
         errores.push(`El nombre no puede superar ${MAX_NOMBRE} caracteres.`);
     }
 
-    datos.fecha = texto(entrada.fecha);
-    if (!fechaValida(datos.fecha)) {
-        errores.push('La fecha es obligatoria y debe tener el formato AAAA-MM-DD.');
+    datos.fechaConsulta = texto(entrada.fechaConsulta) || texto(entrada.fecha);
+    if (!fechaValida(datos.fechaConsulta)) {
+        errores.push('La fecha de la consulta es obligatoria y debe tener el formato AAAA-MM-DD.');
+    }
+    // La columna "fecha" es la que usaban las versiones anteriores. Se sigue
+    // guardando con la fecha de la consulta para no romper bases antiguas.
+    datos.fecha = datos.fechaConsulta;
+
+    datos.fechaNacimiento = texto(entrada.fechaNacimiento);
+    if (datos.fechaNacimiento && !fechaValida(datos.fechaNacimiento)) {
+        errores.push('La fecha de nacimiento debe tener el formato AAAA-MM-DD.');
     }
 
     datos.edad = null;
-    const edad = texto(entrada.edad);
-    if (edad) {
-        const numero = Number(edad);
-        if (!Number.isInteger(numero) || numero < 0 || numero > 120) {
-            errores.push('La edad debe ser un número entero entre 0 y 120.');
+    if (datos.fechaNacimiento && fechaValida(datos.fechaNacimiento)) {
+        if (fechaValida(datos.fechaConsulta) && datos.fechaNacimiento > datos.fechaConsulta) {
+            errores.push('La fecha de nacimiento no puede ser posterior a la fecha de la consulta.');
         } else {
-            datos.edad = numero;
+            const calculada = calcularEdad(datos.fechaNacimiento, datos.fechaConsulta);
+            if (calculada === null || calculada > 120) {
+                errores.push('La fecha de nacimiento debe dar una edad entre 0 y 120 años.');
+            } else {
+                datos.edad = calculada;
+            }
+        }
+    } else {
+        // Sin fecha de nacimiento se conserva la edad guardada (registros
+        // anteriores) o la que escriba el usuario.
+        const edad = texto(entrada.edad);
+        if (edad) {
+            const numero = Number(edad);
+            if (!Number.isInteger(numero) || numero < 0 || numero > 120) {
+                errores.push('La edad debe ser un número entero entre 0 y 120.');
+            } else {
+                datos.edad = numero;
+            }
         }
     }
 

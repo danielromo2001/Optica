@@ -6,9 +6,9 @@ Hecha con Electron + SQLite (`sqlite3`); el PDF y la impresión usan el motor de
 
 ## Características
 
-- **Formulario de paciente** con fecha, entidad, documento, edad, teléfono y datos de la fórmula (RX, AVCC, DP, altura, tipo, filtro, uso, control, observaciones).
+- **Formulario de paciente** con fecha de la consulta, fecha de nacimiento (la edad se calcula automáticamente), entidad, documento, teléfono y datos de la fórmula (RX, AVCC, DP, altura, tipo, filtro, uso, control, observaciones).
 - **Búsqueda por documento** y detección de pacientes existentes.
-- **Listado de pacientes** con búsqueda por nombre/documento y filtro por rango de fechas.
+- **Listado de pacientes** con búsqueda por nombre/documento y filtro por rango de fechas de consulta.
 - **Edición y eliminación** desde el listado o desde el formulario.
 - **PDF por paciente** en `Documentos/Pacientes Optica/`, tamaño media carta horizontal.
 - **Impresión directa** a la impresora predeterminada, también en media carta horizontal, sin pasar por Adobe Reader ni por otra aplicación.
@@ -65,6 +65,8 @@ La fórmula se construye una sola vez como HTML y se usa para las dos salidas, a
 - **Imprimir:** botón *Imprimir* en cada fila del listado o en el aviso que aparece al guardar. Envía el trabajo directamente a la **impresora predeterminada** del sistema, en tamaño **media carta horizontal** (215,9 × 139,7 mm, 8,5 × 5,5 in), sin abrir Adobe Reader ni ninguna otra aplicación.
 - **PDF:** al guardar se crea `Documentos/Pacientes Optica/Paciente_<documento>.pdf`, también en media carta horizontal (612 × 396 pt). Si las observaciones son muy largas, el texto continúa en una segunda página en lugar de recortarse.
 
+La cabecera de la fórmula muestra la **fecha de la consulta** del paciente, no la de nacimiento.
+
 Si Windows no permite imprimir en silencio (controlador, permisos o impresora ocupada), la app muestra el diálogo de impresión para elegir impresora y confirmar. La impresora debe admitir el tamaño media carta. En Windows: *Configuración → Bluetooth y dispositivos → Impresoras y escáneres → [impresora] → Preferencias de impresión → Tamaño de papel: media carta (8,5 × 5,5 in)*. La app envía el tamaño en cada trabajo; si el controlador no lo admite, usa el diálogo y selecciónalo.
 
 La impresión no está atada a una marca o aplicación concreta: se usa la impresora predeterminada de Windows. Si el equipo tiene otra impresora configurada, la app la toma automáticamente.
@@ -89,7 +91,7 @@ Los pacientes **no** viven dentro de la carpeta de la app: están en `%APPDATA%\
 5. Antes de reemplazar, la app guarda la base actual como `optica-antes-de-importar-<fecha>.db` en `%APPDATA%\optica_app\`.
 6. Revisa el listado. Si algo salió mal, vuelve a importar el respaldo o la base vieja.
 
-La importación conserva el historial y migra el esquema antiguo automáticamente (`color` → `altura`, documentos duplicados, índices). El instalador nunca borra `%APPDATA%\optica_app`; si la nueva base ya existe, no la sobrescribe.
+La importación conserva el historial y migra el esquema antiguo automáticamente (`color` → `altura`, documentos duplicados, índices). En los registros anteriores, si la fecha guardada coincide con la edad (por ejemplo, 2001 con 25 años), se toma como **fecha de nacimiento**; si no, se conserva como **fecha de la consulta**. La edad guardada nunca se pierde y, al editar el paciente, puedes completar la fecha que falte para que la edad se calcule sola. El instalador nunca borra `%APPDATA%\optica_app`; si la nueva base ya existe, no la sobrescribe.
 
 ## Respaldo y restauración
 
@@ -131,6 +133,7 @@ js/
   migraciones.js      Esquema, índices y PRAGMA user_version
   pacientes.js        Consultas de pacientes (upsert idempotente)
   validacion.js       Normalización y validación de datos
+  fechas.js           Cálculo de la edad a partir de la fecha de nacimiento
   respaldo.js         Nombre y creación del respaldo
   formula.js          Plantilla HTML de la fórmula (diseños y media carta horizontal)
   pagina.js           Ventana oculta para renderizar la fórmula con Chromium
@@ -189,9 +192,9 @@ npm test
 
 Cubren:
 
-- Validación y normalización (documento, fecha real, edad, teléfono, límites).
+- Validación y normalización (documento, fechas, edad calculada, teléfono, límites).
 - Capa de datos contra SQLite real: alta, upsert sin duplicados, actualización, borrado, búsqueda y filtros.
-- Migración de una base antigua (`color` → `altura`, duplicados, `UNIQUE`, `user_version`) e idempotencia.
+- Migración de una base antigua (`color` → `altura`, clasificación de la fecha antigua como nacimiento o consulta, duplicados, `UNIQUE`, `user_version`) e idempotencia.
 - Respaldo: nombre, copia legible y rechazo de destinos inválidos.
 - Fórmula: tamaño media carta horizontal, reparto en dos tablas, escape de HTML, datos vacíos y las dos variantes de diseño.
 - Impresión: opciones de media carta horizontal, impresión silenciosa y uso de la impresora predeterminada.

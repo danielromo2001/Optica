@@ -10,7 +10,8 @@ const pacientes = require('../js/pacientes');
 let carpeta;
 
 const paciente = (extra = {}) => ({
-    fecha: '2026-01-15',
+    fechaConsulta: '2026-01-15',
+    fechaNacimiento: '1992-01-10',
     entidad: 'Particular',
     nombre: 'Ana Pérez',
     documento: '12345678',
@@ -52,7 +53,39 @@ test('guarda y recupera un paciente', async () => {
     const fila = await pacientes.buscar('12345678');
     assert.equal(fila.nombre, 'Ana Pérez');
     assert.equal(fila.edad, 34);
+    assert.equal(fila.fechaNacimiento, '1992-01-10');
+    assert.equal(fila.fechaConsulta, '2026-01-15');
+    assert.equal(fila.fecha, '2026-01-15');
     assert.equal(fila.altura, '40');
+});
+
+test('calcula la edad en el proceso principal y conserva la columna fecha antigua', async () => {
+    await pacientes.guardar(paciente({
+        documento: '55555555',
+        nombre: 'Edad Automática',
+        fechaNacimiento: '2000-06-20',
+        fechaConsulta: '2026-06-19',
+        edad: '99'
+    }));
+
+    const fila = await pacientes.buscar('55555555');
+    assert.equal(fila.edad, 25);
+    assert.equal(fila.fechaConsulta, '2026-06-19');
+    assert.equal(fila.fecha, '2026-06-19');
+
+    await pacientes.guardar(paciente({
+        documento: '66666666',
+        nombre: 'Registro Viejo',
+        fechaConsulta: undefined,
+        fechaNacimiento: undefined,
+        fecha: '2025-05-05',
+        edad: '40'
+    }));
+
+    const viejo = await pacientes.buscar('66666666');
+    assert.equal(viejo.fechaConsulta, '2025-05-05');
+    assert.equal(viejo.fecha, '2025-05-05');
+    assert.equal(viejo.edad, 40);
 });
 
 test('el documento es único: guardar de nuevo actualiza en vez de duplicar', async () => {
@@ -95,13 +128,13 @@ test('eliminar borra el registro y falla la segunda vez', async () => {
     await assert.rejects(() => pacientes.eliminar('87654321'), /No existe un paciente/);
 });
 
-test('listar busca por nombre o documento y ordena por fecha descendente', async () => {
-    await pacientes.guardar(paciente({ documento: '11111111', nombre: 'Beatriz Gil', fecha: '2026-03-01' }));
-    await pacientes.guardar(paciente({ documento: '22222222', nombre: 'Andrés Mora', fecha: '2026-02-01' }));
+test('listar busca por nombre o documento y ordena por fecha de consulta descendente', async () => {
+    await pacientes.guardar(paciente({ documento: '11111111', nombre: 'Beatriz Gil', fechaConsulta: '2026-03-01' }));
+    await pacientes.guardar(paciente({ documento: '22222222', nombre: 'Andrés Mora', fechaConsulta: '2026-02-01' }));
 
     const todas = await pacientes.listar();
     assert.ok(todas.length >= 3);
-    const fechas = todas.map((fila) => fila.fecha);
+    const fechas = todas.map((fila) => fila.fechaConsulta);
     assert.deepEqual(fechas, [...fechas].sort().reverse());
 
     const porNombre = await pacientes.listar({ texto: 'andrés' });
@@ -133,6 +166,6 @@ test('listar devuelve los campos que usa la tabla', async () => {
     const [fila] = await pacientes.listar({ texto: '12345678' });
 
     assert.deepEqual(Object.keys(fila).sort(), [
-        'altura', 'documento', 'edad', 'fecha', 'id', 'nombre', 'telefono'
+        'altura', 'documento', 'edad', 'fechaConsulta', 'id', 'nombre', 'telefono'
     ].sort());
 });
