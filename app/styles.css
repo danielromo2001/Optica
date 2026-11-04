@@ -231,6 +231,12 @@ textarea::placeholder {
     color: #98A1AA;
 }
 
+input[readonly] {
+    color: #4A5158;
+    background-color: #EEF2F6;
+    cursor: default;
+}
+
 input:focus,
 select:focus,
 textarea:focus {

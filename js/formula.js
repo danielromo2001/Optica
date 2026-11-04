@@ -22,10 +22,10 @@ const MESES = [
 // a la izquierda la refracción y a la derecha las características de la lente.
 const FILAS = [
     { etiqueta: 'RX', od: 'od', oi: 'oi', grupo: 'refraccion' },
-    { etiqueta: 'ADD', unico: 'adicion', grupo: 'refraccion' },
+    { etiqueta: 'ADD', unico: 'adicion', grupo: 'refraccion', centrado: true },
     { etiqueta: 'AVCC', od: 'avcc_od', oi: 'avcc_oi', grupo: 'refraccion' },
     { etiqueta: 'Distancia nasopupilar', od: 'distanciaNasopupilarOD', oi: 'distanciaNasopupilarOI', grupo: 'refraccion' },
-    { etiqueta: 'D. pupilar', unico: 'dp', grupo: 'refraccion' },
+    { etiqueta: 'D. pupilar', unico: 'dp', grupo: 'refraccion', centrado: true },
     { etiqueta: 'Altura', unico: 'altura', grupo: 'lentes' },
     { etiqueta: 'Tipo', unico: 'tipo', grupo: 'lentes' },
     { etiqueta: 'Filtro', unico: 'filtro', grupo: 'lentes' },
@@ -74,7 +74,8 @@ function filaHTML(fila, datos) {
     const etiqueta = `<th scope="row">${escapar(fila.etiqueta)}</th>`;
 
     if (fila.unico) {
-        return `<tr>${etiqueta}<td colspan="2" class="unico">${dato(datos[fila.unico])}</td></tr>`;
+        const clase = fila.centrado ? 'unico centrado' : 'unico';
+        return `<tr>${etiqueta}<td colspan="2" class="${clase}">${dato(datos[fila.unico])}</td></tr>`;
     }
 
     return `<tr>${etiqueta}<td>${dato(datos[fila.od])}</td><td>${dato(datos[fila.oi])}</td></tr>`;
@@ -88,9 +89,6 @@ function tablaHTML(grupo, datos) {
 
     return `<table class="rx">
         <caption>${escapar(grupo.titulo)}</caption>
-        <thead>
-            <tr><th scope="col">Concepto</th><th scope="col">OD</th><th scope="col">OI</th></tr>
-        </thead>
         <tbody>${filas}</tbody>
     </table>`;
 }
@@ -148,7 +146,7 @@ const CSS_BASE = `
         display: grid;
         grid-template-columns: 1.65fr 1fr 0.55fr 1fr 1.1fr;
         gap: 1.5mm 4mm;
-        align-items: end;
+        align-items: center;
     }
     .paciente .nombre { font-size: 11.5pt; font-weight: 700; line-height: 1.15; overflow-wrap: anywhere; }
     .dato { display: flex; flex-direction: column; gap: 0.2mm; min-width: 0; }
@@ -168,6 +166,7 @@ const CSS_BASE = `
     table.rx th, table.rx td { padding: 1.35mm 2mm; font-size: 8.5pt; }
     table.rx td { text-align: center; font-variant-numeric: tabular-nums; }
     table.rx td.unico { text-align: left; padding-left: 2.6mm; }
+    table.rx td.unico.centrado { text-align: center; padding-left: 2mm; }
     table.rx, .cabecera, .paciente, .pie { break-inside: avoid; page-break-inside: avoid; }
     table.rx tr { break-inside: avoid; page-break-inside: avoid; }
     .observaciones { margin-top: 3mm; }
@@ -199,14 +198,6 @@ const CSS_CLASICA = `
     }
     table.rx caption { color: #1770D5; }
     table.rx th, table.rx td { border: 0.25mm solid #cfd8e3; }
-    table.rx thead th {
-        background: #1770D5;
-        color: #ffffff;
-        font-size: 7.3pt;
-        font-weight: 600;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-    }
     table.rx tbody th { width: 46%; text-align: left; background: #eef4fb; color: #26313d; font-weight: 600; }
     table.rx tbody tr:nth-child(even) td { background: #fafcfe; }
     .observaciones h3 { color: #1770D5; }
@@ -229,15 +220,6 @@ const CSS_MODERNA = `
     .paciente { border-bottom: 0.3mm solid #d7dee7; padding-bottom: 2mm; margin-top: 2mm; }
     .dato .et { color: #8a929c; }
     table.rx caption { color: #8a929c; }
-    table.rx thead th {
-        color: #1770D5;
-        font-size: 7.2pt;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        border-bottom: 0.5mm solid #1770D5;
-        text-align: left;
-    }
-    table.rx thead th:not(:first-child) { text-align: center; }
     table.rx tbody th { width: 46%; text-align: left; font-weight: 400; color: #6b7480; border-bottom: 0.2mm solid #e4e9ef; }
     table.rx tbody td { border-bottom: 0.2mm solid #e4e9ef; font-size: 8.8pt; font-weight: 600; }
     table.rx tbody tr:nth-child(even) th,
@@ -310,6 +292,10 @@ function contenidoHTML(datos, imagenes) {
 function construirHTML(datos = {}, { imagenes = {}, diseno = DISENO_POR_DEFECTO } = {}) {
     const disenoValido = DISENOS[diseno] ? diseno : DISENO_POR_DEFECTO;
     const recursos = imagenesHTML(imagenes);
+    // Las filas migradas de la versión anterior pueden traer fechaConsulta
+    // vacía (cuando "fecha" era la de nacimiento). Solo se usa "fecha" como
+    // respaldo si el objeto no trae la propiedad nueva.
+    const fecha = datos.fechaConsulta !== undefined ? datos.fechaConsulta : datos.fecha;
 
     return `<!DOCTYPE html>
 <html lang="es">
@@ -320,7 +306,7 @@ function construirHTML(datos = {}, { imagenes = {}, diseno = DISENO_POR_DEFECTO 
 </head>
 <body>
     <div class="hoja hoja--${disenoValido}">
-        ${cabeceraHTML(recursos, datos.fecha)}
+        ${cabeceraHTML(recursos, fecha)}
         ${contenidoHTML(datos, recursos)}
     </div>
 </body>

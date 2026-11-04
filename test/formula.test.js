@@ -10,7 +10,8 @@ const {
 } = require('../js/formula');
 
 const PACIENTE = {
-    fecha: '2026-11-03',
+    fecha: '2020-01-01',
+    fechaConsulta: '2026-11-03',
     nombre: 'Ana Pérez',
     documento: '1000474497',
     edad: '34',
@@ -48,6 +49,43 @@ test('reparte las mediciones en dos tablas para aprovechar el ancho', () => {
     assert.ok(html.includes('<caption>Refracción</caption>'));
     assert.ok(html.includes('<caption>Lentes</caption>'));
     assert.equal((html.match(/<table class="rx">/g) || []).length, 2);
+});
+
+test('no muestra la fila de encabezado Concepto/OD/OI', () => {
+    const html = construirHTML(PACIENTE);
+
+    assert.ok(!html.includes('<thead>'));
+    assert.ok(!html.includes('Concepto'));
+    assert.ok(!html.includes('>OD</th>'));
+    assert.ok(!html.includes('>OI</th>'));
+});
+
+test('centra el nombre del paciente y los valores de ADD y D. pupilar', () => {
+    const html = construirHTML(PACIENTE);
+
+    assert.ok(html.includes('align-items: center'));
+    assert.ok(html.includes('class="unico centrado">+1.50</td>'));
+    assert.ok(html.includes('class="unico centrado">62</td>'));
+    assert.ok(html.includes('table.rx td.unico.centrado'));
+});
+
+test('usa la fecha de la consulta en la cabecera', () => {
+    const html = construirHTML(PACIENTE);
+
+    assert.ok(html.includes('3 de noviembre de 2026'));
+    assert.ok(!html.includes('1 de enero de 2020'));
+});
+
+test('no muestra una fecha antigua de nacimiento como fecha de consulta', () => {
+    const html = construirHTML({ fecha: '2001-07-23', fechaConsulta: '' });
+
+    assert.ok(!html.includes('23 de julio de 2001'));
+});
+
+test('mantiene la compatibilidad si el objeto solo trae fecha', () => {
+    const html = construirHTML({ fecha: '2026-11-03' });
+
+    assert.ok(html.includes('3 de noviembre de 2026'));
 });
 
 test('incluye los datos y las mediciones del paciente', () => {

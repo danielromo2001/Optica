@@ -45,8 +45,8 @@ before(async () => {
         distanciaNasopupilarOD TEXT, distanciaNasopupilarOI TEXT
     )`);
 
-    await ejecutar("INSERT INTO pacientes (documento, nombre, color) VALUES ('100', 'Registro viejo', '40')");
-    await ejecutar("INSERT INTO pacientes (documento, nombre, color) VALUES ('100', 'Registro nuevo', '42')");
+    await ejecutar("INSERT INTO pacientes (documento, nombre, fecha, color) VALUES ('100', 'Registro viejo', '2025-12-01', '40')");
+    await ejecutar("INSERT INTO pacientes (documento, nombre, fecha, color) VALUES ('100', 'Registro nuevo', '2026-01-02', '42')");
     await ejecutar("INSERT INTO pacientes (documento, nombre, color) VALUES ('200', 'Sin color', NULL)");
 });
 
@@ -63,14 +63,20 @@ test('migra color a altura y conserva el registro más reciente de cada document
     const columnas = await traerTodos('PRAGMA table_info(pacientes)');
     const nombres = columnas.map((columna) => columna.name);
     assert.ok(nombres.includes('altura'));
+    assert.ok(nombres.includes('fechaConsulta'));
+    assert.ok(nombres.includes('fechaNacimiento'));
 
-    const filas = await traerTodos('SELECT documento, nombre, altura FROM pacientes ORDER BY documento');
+    const filas = await traerTodos('SELECT documento, nombre, altura, fecha, fechaConsulta, fechaNacimiento FROM pacientes ORDER BY documento');
     assert.equal(filas.length, 2);
     assert.equal(filas[0].documento, '100');
     assert.equal(filas[0].nombre, 'Registro nuevo');
     assert.equal(filas[0].altura, '42');
+    assert.equal(filas[0].fecha, '2026-01-02');
+    assert.equal(filas[0].fechaConsulta, '2026-01-02');
+    assert.equal(filas[0].fechaNacimiento, null);
     assert.equal(filas[1].documento, '200');
     assert.equal(filas[1].altura, null);
+    assert.equal(filas[1].fechaConsulta, null);
 });
 
 test('crea el índice único y la versión de esquema', async () => {
