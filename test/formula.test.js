@@ -48,16 +48,21 @@ test('reparte las mediciones en dos tablas para aprovechar el ancho', () => {
 
     assert.ok(html.includes('<caption>Refracción</caption>'));
     assert.ok(html.includes('<caption>Lentes</caption>'));
-    assert.equal((html.match(/<table class="rx">/g) || []).length, 2);
+    assert.equal((html.match(/<table class="rx[ "]/g) || []).length, 2);
 });
 
-test('no muestra la fila de encabezado Concepto/OD/OI', () => {
+test('muestra Concepto/OD/OI solo en la tabla de Refracción', () => {
     const html = construirHTML(PACIENTE);
 
-    assert.ok(!html.includes('<thead>'));
-    assert.ok(!html.includes('Concepto'));
-    assert.ok(!html.includes('>OD</th>'));
-    assert.ok(!html.includes('>OI</th>'));
+    assert.equal((html.match(/<thead>/g) || []).length, 1);
+    assert.ok(html.includes('<table class="rx rx--encabezado">'));
+    assert.ok(html.includes('<th scope="col">Concepto</th>'));
+    assert.ok(html.includes('<th scope="col">OD</th>'));
+    assert.ok(html.includes('<th scope="col">OI</th>'));
+
+    const [antesDeLentes, resto] = html.split('<caption>Lentes</caption>');
+    assert.ok(antesDeLentes.includes('<thead>'));
+    assert.ok(!resto.includes('<thead>'));
 });
 
 test('centra el nombre del paciente y los valores de ADD y D. pupilar', () => {
